@@ -36,17 +36,14 @@ public class TemporalExtractor {
 
     private static final Logger logger = Logger.getLogger(TemporalExtractor.class.getName());
 
-    private final String language;
-
     private final Language langObj;
 
     public TemporalExtractor(String language) {
-        this.language = language;
         langObj = Language.getLanguageFromString(language);
     }
 
     public void init() {
-        heidelTagger = new HeidelTimeStandalone(langObj, DocumentType.NARRATIVES, OutputType.TIMEML);
+        heidelTagger = new HeidelTimeStandalone(langObj, DocumentType.NARRATIVES, OutputType.TIMEML, "lib3rd/config.props");
     }
 
     public TaggedText process(String text) throws Exception {

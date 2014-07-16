@@ -34,7 +34,6 @@ public class TemporalEventExtraction {
 
     private Analyzer analyzer;
     private TemporalExtractor tempExtractor;
-    private IndexWriterConfig config;
     private FSDirectory time_index;
     private FSDirectory doc_index;
     private IndexWriter time_writer;
@@ -54,10 +53,12 @@ public class TemporalEventExtraction {
         time_index = FSDirectory.open(new File(timeDir));
         doc_index = FSDirectory.open(new File(docDir));
         analyzer = new StandardAnalyzer(Version.LUCENE_48);
-        config = new IndexWriterConfig(Version.LUCENE_48, analyzer);
-        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
-        time_writer = new IndexWriter(time_index, config);
-        doc_writer = new IndexWriter(doc_index, config);
+        IndexWriterConfig configTime = new IndexWriterConfig(Version.LUCENE_48, analyzer);
+        configTime.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+        time_writer = new IndexWriter(time_index, configTime);
+        IndexWriterConfig configDoc = new IndexWriterConfig(Version.LUCENE_48, analyzer);
+        configDoc.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+        doc_writer = new IndexWriter(doc_index, configDoc);
 
     }
 
