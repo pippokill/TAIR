@@ -65,6 +65,8 @@ public class TemporalExtractor {
         TaggedText taggedText = new TaggedText();
         taggedText.setText(text);
         String timemlOutput = heidelTagger.process(text, currentTime);
+        byte[] bytes = timemlOutput.getBytes("ISO-8859-1");
+        timemlOutput=new String(bytes);
         timemlOutput = escapeXML(timemlOutput);
         taggedText.setTaggedText(timemlOutput);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

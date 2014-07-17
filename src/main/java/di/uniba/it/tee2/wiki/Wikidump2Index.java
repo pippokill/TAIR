@@ -56,6 +56,8 @@ public class Wikidump2Index {
                 WikiPage wikiPage = wikiIterator.next();
                 ParsedPage parsedPage = wikiPage.getParsedPage();
                 String title = wikiPage.getTitle();
+                byte[] bytes = title.getBytes("ISO-8859-1");
+                title = new String(bytes);
                 if (!title.matches(notValidTitle)) {
                     if (parsedPage != null) {
                         String text = parsedPage.getText();
@@ -70,6 +72,9 @@ public class Wikidump2Index {
                         }
                     }
                     counter++;
+                }
+                if (docID == 50) {
+                    break;
                 }
             }
 

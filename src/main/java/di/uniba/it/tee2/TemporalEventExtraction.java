@@ -102,8 +102,7 @@ public class TemporalEventExtraction {
             time_doc.add(new StringField("file", fileName, Field.Store.YES));
             time_doc.add(new TextField("content", tt.getTaggedText(), Field.Store.NO));
 
-            for (TimeEvent event : tt.getEvents()) { //cicla su tutti  i tag timex3 presenti nel documento
-                //memorizzazione in time_index dei dati temporali 
+            for (TimeEvent event : tt.getEvents()) { //for each TIMEX3 store info time index
                 FieldType ft = new FieldType();
                 ft.setStoreTermVectors(true);
                 ft.setTokenized(true);
@@ -133,6 +132,7 @@ public class TemporalEventExtraction {
     /**
      * @param keyword
      * @param timeRange
+     * @param maxResults
      * @return
      * @throws java.lang.Exception
      *
