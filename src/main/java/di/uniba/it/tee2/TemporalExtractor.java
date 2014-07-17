@@ -16,13 +16,14 @@ import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.jboss.logging.Logger;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
@@ -72,7 +73,7 @@ public class TemporalExtractor {
                 try {
                     normalizedTime = TEEUtils.normalizeTime(timeValueString);
                 } catch (Exception ex) {
-                    logger.warn("Error to normalize time: ", ex);
+                    logger.log(Level.WARNING, "Error to normalize time: ", ex);
                 }
                 if (normalizedTime != null) {
                     offset_start = (text.indexOf(nodes.item(i).getTextContent(), ind) + 1);

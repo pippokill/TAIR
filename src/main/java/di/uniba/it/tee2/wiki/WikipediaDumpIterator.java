@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,7 +30,7 @@ public class WikipediaDumpIterator implements Iterator<WikiPage> {
     private MediaWikiParser parser;
     private static final Logger logger = Logger.getLogger(WikipediaDumpIterator.class.getName());
 
-    public WikipediaDumpIterator(File xmlFile) throws XMLStreamException, FileNotFoundException, CompressorException, IOException {
+    public WikipediaDumpIterator(File xmlFile, String encoding) throws XMLStreamException, FileNotFoundException, CompressorException, IOException {
         MediaWikiParserFactory parserFactory = new MediaWikiParserFactory(WikiConstants.Language.english);
         parserFactory.setTemplateParserClass(FlushTemplates.class);
         parserFactory.setShowImageText(false);
@@ -42,10 +40,10 @@ public class WikipediaDumpIterator implements Iterator<WikiPage> {
         if (xmlFile.getName().endsWith(".bz2")) {
             logger.log(Level.INFO, "Trying to open compress dumb...");
             BZip2CompressorInputStream compressIS = new BZip2CompressorInputStream(new BufferedInputStream(new FileInputStream(xmlFile)));
-            xmlStreamReader = inputFactory.createXMLStreamReader(compressIS, "UTF-8");
+            xmlStreamReader = inputFactory.createXMLStreamReader(compressIS, encoding);
         } else {
             logger.log(Level.INFO, "Trying to open plai text dumb...");
-            xmlStreamReader = inputFactory.createXMLStreamReader(new BufferedInputStream(new FileInputStream(xmlFile)), "UTF-8");
+            xmlStreamReader = inputFactory.createXMLStreamReader(new BufferedInputStream(new FileInputStream(xmlFile)), encoding);
         }
     }
 
