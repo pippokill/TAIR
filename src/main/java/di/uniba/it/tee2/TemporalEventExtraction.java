@@ -55,6 +55,7 @@ public class TemporalEventExtraction {
         tempExtractor.init();
         time_index = FSDirectory.open(new File(timeDir));
         doc_index = FSDirectory.open(new File(docDir));
+        docrep_index = FSDirectory.open(new File(docDir + "_repo"));
         analyzer = new StandardAnalyzer(Version.LUCENE_48);
         IndexWriterConfig configTime = new IndexWriterConfig(Version.LUCENE_48, analyzer);
         configTime.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
