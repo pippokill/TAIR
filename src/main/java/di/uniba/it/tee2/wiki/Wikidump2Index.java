@@ -76,8 +76,10 @@ public class Wikidump2Index {
             logger.log(Level.INFO, "Extracted pages: {0}", counter);
             logger.log(Level.INFO, "Indexed pages: {0}", docID);
             wikiIterator.close();
+            tee.close();
 
         } catch (XMLStreamException | FileNotFoundException | CompressorException ex) {
+            logger.log(Level.SEVERE, "Error to build index", ex);
         }
 
     }

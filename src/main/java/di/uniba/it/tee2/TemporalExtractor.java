@@ -24,6 +24,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
@@ -47,11 +48,24 @@ public class TemporalExtractor {
         heidelTagger = new HeidelTimeStandalone(langObj, DocumentType.NARRATIVES, OutputType.TIMEML, "lib3rd/config.props");
     }
 
+    private String escapeXML(String xmlString) throws Exception {
+        int startIndex = xmlString.indexOf("<TimeML>");
+        int endIndex = xmlString.indexOf("</TimeML>");
+        if (startIndex >= 0 && endIndex >= 0) {
+            String content = StringEscapeUtils.escapeXml11(xmlString.substring(startIndex + 8, endIndex));
+            StringBuilder sb = new StringBuilder(xmlString);
+            return sb.replace(startIndex + 8, endIndex, content).toString();
+        } else {
+            throw new Exception("No valid TimeML doc");
+        }
+    }
+
     public TaggedText process(String text) throws Exception {
         Date currentTime = Calendar.getInstance(TimeZone.getDefault()).getTime();
         TaggedText taggedText = new TaggedText();
         taggedText.setText(text);
         String timemlOutput = heidelTagger.process(text, currentTime);
+        timemlOutput = escapeXML(timemlOutput);
         taggedText.setTaggedText(timemlOutput);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
