@@ -32,86 +32,95 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2.data;
+package di.uniba.it.tee2.search;
 
-import java.util.Date;
+import java.util.Objects;
 
 /**
  *
  * @author pierpaolo
  */
-public class TimeEvent {
+public class SearchResult implements Comparable<SearchResult> {
 
-    private int startOffset;
+    private int indexId;
 
-    private int endOffset;
+    private String id;
 
-    private Date date;
+    private float score;
 
-    private String dateString;
+    private String snip;
+
+    public SearchResult(int indexId, String id) {
+        this.indexId = indexId;
+        this.id = id;
+    }
+
+    public int getIndexId() {
+        return indexId;
+    }
+
+    public void setIndexId(int indexId) {
+        this.indexId = indexId;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSnip() {
+        return snip;
+    }
+
+    public void setSnip(String snip) {
+        this.snip = snip;
+    }
     
-    private String eventString;
+    
 
-    public TimeEvent(int startOffset, int endOffset, Date date) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.date = date;
+    public float getScore() {
+        return score;
     }
 
-    public TimeEvent(int startOffset, int endOffset, String dateString) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.dateString = dateString;
+    public void setScore(float score) {
+        this.score = score;
     }
 
-    public TimeEvent(int startOffset, int endOffset, Date date, String dateString) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.date = date;
-        this.dateString = dateString;
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 29 * hash + Objects.hashCode(this.id);
+        return hash;
     }
 
-    public TimeEvent() {
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SearchResult other = (SearchResult) obj;
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        return true;
     }
 
-    public String getEventString() {
-        return eventString;
+    @Override
+    public int compareTo(SearchResult o) {
+        return Float.compare(score, o.score);
     }
 
-    public void setEventString(String eventString) {
-        this.eventString = eventString;
+    @Override
+    public String toString() {
+        return "SearchResult{" + "indexId=" + indexId + ", id=" + id + ", score=" + score + ", snip=" + snip + '}';
     }
-
-    public int getStartOffset() {
-        return startOffset;
-    }
-
-    public void setStartOffset(int startOffset) {
-        this.startOffset = startOffset;
-    }
-
-    public int getEndOffset() {
-        return endOffset;
-    }
-
-    public void setEndOffset(int endOffset) {
-        this.endOffset = endOffset;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public String getDateString() {
-        return dateString;
-    }
-
-    public void setDateString(String dateString) {
-        this.dateString = dateString;
-    }
+    
+    
 
 }

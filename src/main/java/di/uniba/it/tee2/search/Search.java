@@ -32,86 +32,44 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2.data;
+package di.uniba.it.tee2.search;
 
-import java.util.Date;
+import di.uniba.it.tee2.TemporalExtractor;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author pierpaolo
  */
-public class TimeEvent {
+public class Search {
 
-    private int startOffset;
-
-    private int endOffset;
-
-    private Date date;
-
-    private String dateString;
-    
-    private String eventString;
-
-    public TimeEvent(int startOffset, int endOffset, Date date) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.date = date;
-    }
-
-    public TimeEvent(int startOffset, int endOffset, String dateString) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.dateString = dateString;
-    }
-
-    public TimeEvent(int startOffset, int endOffset, Date date, String dateString) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.date = date;
-        this.dateString = dateString;
-    }
-
-    public TimeEvent() {
-    }
-
-    public String getEventString() {
-        return eventString;
-    }
-
-    public void setEventString(String eventString) {
-        this.eventString = eventString;
-    }
-
-    public int getStartOffset() {
-        return startOffset;
-    }
-
-    public void setStartOffset(int startOffset) {
-        this.startOffset = startOffset;
-    }
-
-    public int getEndOffset() {
-        return endOffset;
-    }
-
-    public void setEndOffset(int endOffset) {
-        this.endOffset = endOffset;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public String getDateString() {
-        return dateString;
-    }
-
-    public void setDateString(String dateString) {
-        this.dateString = dateString;
+    /**
+     * language maindir query temp_query
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        if (args.length > 3) {
+            try {
+                TemporalExtractor te = new TemporalExtractor(args[0]);
+                te.init();
+                TemporalEventSearch search = new TemporalEventSearch(args[1], te);
+                search.init();
+                List<SearchResult> res = search.search(args[2], args[3], 100);
+                for (SearchResult r : res) {
+                    System.out.println(r);
+                }
+                search.close();
+                te.close();
+            } catch (Exception ex) {
+                Logger.getLogger(Search.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            System.err.println("no valid arguments");
+            System.exit(1);
+        }
     }
 
 }

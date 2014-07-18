@@ -1,12 +1,41 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Copyright (c) 2014, the TEE2 AUTHORS.
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * Neither the name of the University of Bari nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
+ *
  */
 package di.uniba.it.tee2.wiki;
 
 import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
-import di.uniba.it.tee2.TemporalEventExtraction;
+import di.uniba.it.tee2.TemporalEventIndexing;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.logging.Level;
@@ -26,7 +55,7 @@ public class Wikidump2Index {
 
     private static final Logger logger = Logger.getLogger(Wikidump2Index.class.getName());
 
-    private TemporalEventExtraction tee;
+    private TemporalEventIndexing tee;
 
     private static final String defaultEncoding = "ISO-8859-1";
 
@@ -38,9 +67,9 @@ public class Wikidump2Index {
         this.minTextLegth = minTextLegth;
     }
 
-    public void init(String lang, String timeIndexDir, String docIndexDir) throws Exception {
-        tee = new TemporalEventExtraction();
-        tee.init(lang, timeIndexDir, docIndexDir);
+    public void init(String lang, String mainDir) throws Exception {
+        tee = new TemporalEventIndexing();
+        tee.init(lang, mainDir);
     }
 
     public void build(String xmlDumpFilename, String encoding) throws Exception {
@@ -67,13 +96,13 @@ public class Wikidump2Index {
                                 tee.add(text, title, docID.toString());
                                 docID++;
                             } catch (Exception ex) {
-                                logger.log(Level.SEVERE, "Error to index page", ex);
+                                logger.log(Level.SEVERE, "Error to index page (skip page) " + title, ex);
                             }
                         }
                     }
                     counter++;
                 }
-                if (docID == 50) {
+                if (docID == 100) {
                     break;
                 }
             }
@@ -90,16 +119,17 @@ public class Wikidump2Index {
     }
 
     /**
+     * language xml_dump output_dir encoding
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         try {
             Wikidump2Index builder = new Wikidump2Index();
-            builder.init(args[1], args[2], args[3]);
-            if (args.length == 4) {
-                builder.build(args[0], defaultEncoding);
-            } else if (args.length > 4) {
-                builder.build(args[0], args[4]);
+            builder.init(args[0],args[2]);
+            if (args.length == 3) {
+                builder.build(args[1], defaultEncoding);
+            } else if (args.length > 3) {
+                builder.build(args[1], args[3]);
             } else {
                 throw new Exception("No valid arguments");
             }

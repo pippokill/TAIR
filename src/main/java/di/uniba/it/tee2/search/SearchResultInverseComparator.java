@@ -32,86 +32,19 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2.data;
+package di.uniba.it.tee2.search;
 
-import java.util.Date;
+import java.util.Comparator;
 
 /**
  *
  * @author pierpaolo
  */
-public class TimeEvent {
+public class SearchResultInverseComparator implements Comparator<SearchResult> {
 
-    private int startOffset;
-
-    private int endOffset;
-
-    private Date date;
-
-    private String dateString;
-    
-    private String eventString;
-
-    public TimeEvent(int startOffset, int endOffset, Date date) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.date = date;
-    }
-
-    public TimeEvent(int startOffset, int endOffset, String dateString) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.dateString = dateString;
-    }
-
-    public TimeEvent(int startOffset, int endOffset, Date date, String dateString) {
-        this.startOffset = startOffset;
-        this.endOffset = endOffset;
-        this.date = date;
-        this.dateString = dateString;
-    }
-
-    public TimeEvent() {
-    }
-
-    public String getEventString() {
-        return eventString;
-    }
-
-    public void setEventString(String eventString) {
-        this.eventString = eventString;
-    }
-
-    public int getStartOffset() {
-        return startOffset;
-    }
-
-    public void setStartOffset(int startOffset) {
-        this.startOffset = startOffset;
-    }
-
-    public int getEndOffset() {
-        return endOffset;
-    }
-
-    public void setEndOffset(int endOffset) {
-        this.endOffset = endOffset;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public String getDateString() {
-        return dateString;
-    }
-
-    public void setDateString(String dateString) {
-        this.dateString = dateString;
+    @Override
+    public int compare(SearchResult o1, SearchResult o2) {
+        return Float.compare(o2.getScore(), o1.getScore());
     }
 
 }
