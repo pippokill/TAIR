@@ -114,9 +114,6 @@ public class Wikidump2IndexMT {
                         Wikidump2IndexMT.pages.put(wikiPage);
                         counter++;
                     }
-                    if (counter == 20) {
-                        break;
-                    }
                 } catch (UnsupportedEncodingException | InterruptedException ex) {
                     Logger.getLogger(Wikidump2IndexMT.class.getName()).log(Level.SEVERE, null, ex);
                 }

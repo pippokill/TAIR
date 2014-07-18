@@ -102,9 +102,6 @@ public class Wikidump2Index {
                     }
                     counter++;
                 }
-                if (docID == 10) {
-                    break;
-                }
             }
 
             logger.log(Level.INFO, "Extracted pages: {0}", counter);
