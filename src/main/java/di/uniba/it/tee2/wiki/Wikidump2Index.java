@@ -90,11 +90,14 @@ public class Wikidump2Index {
                 if (!title.matches(notValidTitle)) {
                     if (parsedPage != null) {
                         String text = parsedPage.getText();
-                        logger.log(Level.INFO, "Process doc {0}", title);
+                        logger.log(Level.FINE, "Process doc {0}", title);
                         if (text.length() > this.minTextLegth) {
                             try {
                                 tee.add(text, title, docID.toString());
                                 docID++;
+                                if (docID % 1000 == 0) {
+                                    logger.log(Level.INFO, "Indexed pages: {0}", docID);
+                                }
                             } catch (Exception ex) {
                                 logger.log(Level.SEVERE, "Error to index page (skip page) " + title, ex);
                             }
@@ -117,12 +120,13 @@ public class Wikidump2Index {
 
     /**
      * language xml_dump output_dir encoding
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         try {
             Wikidump2Index builder = new Wikidump2Index();
-            builder.init(args[0],args[2]);
+            builder.init(args[0], args[2]);
             if (args.length == 3) {
                 builder.build(args[1], defaultEncoding);
             } else if (args.length > 3) {

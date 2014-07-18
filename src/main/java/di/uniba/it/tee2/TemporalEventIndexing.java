@@ -139,7 +139,7 @@ public class TemporalEventIndexing {
             doc_doc.add(new TextField("content", tt.getText(), Field.Store.NO));
             doc_writer.addDocument(doc_doc);
 
-            logger.log(Level.INFO, "Found {0} temporal events", tt.getEvents().size());
+            logger.log(Level.FINE, "Found {0} temporal events", tt.getEvents().size());
 
             for (TimeEvent event : tt.getEvents()) { //for each TIMEX3 store info time index
                 //stores id, file name and text (TimeML tagged) in time_index

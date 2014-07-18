@@ -40,7 +40,7 @@ public class IndexThread extends Thread {
                     ParsedPage parsedPage = wikiPage.getParsedPage();
                     if (parsedPage != null) {
                         String text = parsedPage.getText();
-                        logger.log(Level.INFO, "Process doc {0}", wikiPage.getTitle());
+                        logger.log(Level.FINE, "Process doc {0}", wikiPage.getTitle());
                         if (text.length() > this.minTextLegth) {
                             try {
                                 int docid = Wikidump2IndexMT.incrementDoc();
