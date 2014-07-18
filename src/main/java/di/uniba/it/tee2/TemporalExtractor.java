@@ -76,7 +76,7 @@ public class TemporalExtractor {
     public void init() {
         heidelTagger = new HeidelTimeStandalone(langObj, DocumentType.NARRATIVES, OutputType.TIMEML, "lib3rd/config.props");
     }
-    
+
     private String escapeXML(String xmlString) throws Exception {
         int startIndex = xmlString.indexOf("<TimeML>");
         int endIndex = xmlString.indexOf("</TimeML>");
@@ -109,10 +109,11 @@ public class TemporalExtractor {
     public TaggedText process(String text) throws Exception {
         Date currentTime = Calendar.getInstance(TimeZone.getDefault()).getTime();
         TaggedText taggedText = new TaggedText();
-        taggedText.setText(text);
         String timemlOutput = heidelTagger.process(text, currentTime);
-        byte[] bytes = timemlOutput.getBytes("ISO-8859-1");
-        timemlOutput = new String(bytes);
+        byte[] bytes = text.getBytes("ISO-8859-1");
+        text=new String(bytes,"UTF-8");
+        taggedText.setText(text);
+        timemlOutput = new String(timemlOutput.getBytes("ISO-8859-1"));
         timemlOutput = escapeXML(timemlOutput);
         taggedText.setTaggedText(timemlOutput);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

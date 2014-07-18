@@ -10,7 +10,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xmx4g -classpath %classpath di.uniba.it.tee2.wiki.Wikidump2Index italian /media/pierpaolo/storage/data/wiki/it/itwiki-latest-pages-articles.xml.bz2 /media/pierpaolo/storage/data/wiki/it/temp/</exec.args>
+                <exec.args>-Xmx4g -classpath %classpath di.uniba.it.tee2.wiki.Wikidump2IndexMT italian /media/pierpaolo/storage/data/wiki/it/itwiki-latest-pages-articles.xml.bz2 /media/pierpaolo/storage/data/wiki/it/temp/</exec.args>
                 <exec.executable>java</exec.executable>
             </properties>
         </action>
@@ -24,7 +24,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Xmx4g -classpath %classpath di.uniba.it.tee2.wiki.Wikidump2Index italian /media/pierpaolo/storage/data/wiki/it/itwiki-latest-pages-articles.xml.bz2 /media/pierpaolo/storage/data/wiki/it/temp/</exec.args>
+                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Xmx4g -classpath %classpath di.uniba.it.tee2.wiki.Wikidump2IndexMT italian /media/pierpaolo/storage/data/wiki/it/itwiki-latest-pages-articles.xml.bz2 /media/pierpaolo/storage/data/wiki/it/temp/</exec.args>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
             </properties>
@@ -39,7 +39,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xmx4g -classpath %classpath di.uniba.it.tee2.wiki.Wikidump2Index italian /media/pierpaolo/storage/data/wiki/it/itwiki-latest-pages-articles.xml.bz2 /media/pierpaolo/storage/data/wiki/it/temp/</exec.args>
+                <exec.args>-Xmx4g -classpath %classpath di.uniba.it.tee2.wiki.Wikidump2IndexMT italian /media/pierpaolo/storage/data/wiki/it/itwiki-latest-pages-articles.xml.bz2 /media/pierpaolo/storage/data/wiki/it/temp/</exec.args>
                 <exec.executable>java</exec.executable>
             </properties>
         </action>
