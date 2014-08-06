@@ -7,6 +7,7 @@ package di.uniba.it.tee2.wiki;
 
 import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
 import di.uniba.it.tee2.TemporalEventIndexing;
+import di.uniba.it.tee2.TemporalEventIndexingTS;
 import static di.uniba.it.tee2.wiki.Wikidump2IndexMT.notValidTitle;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -23,9 +24,9 @@ public class IndexThread extends Thread {
 
     private final int minTextLegth;
 
-    private final TemporalEventIndexing tee;
+    private final TemporalEventIndexingTS tee;
 
-    public IndexThread(TemporalEventIndexing tee, int minTextLegth) {
+    public IndexThread(TemporalEventIndexingTS tee, int minTextLegth) {
         this.tee = tee;
         this.minTextLegth = minTextLegth;
     }
