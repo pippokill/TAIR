@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -81,6 +82,8 @@ public class TemporalEventSearch {
 
     private StandardAnalyzer analyzer;
 
+    private KeywordAnalyzer kwAnalyzer;
+
     private int snipSize = 128;
 
     public TemporalEventSearch(String mainDir, TemporalExtractor tempExtractor) {
@@ -96,6 +99,7 @@ public class TemporalEventSearch {
         time_searcher = new IndexSearcher(timeReader);
         repo_searcher = new IndexSearcher(repoReader);
         analyzer = new StandardAnalyzer(Version.LUCENE_48);
+        kwAnalyzer = new KeywordAnalyzer();
     }
 
     public void close() throws IOException {
@@ -113,13 +117,19 @@ public class TemporalEventSearch {
      *
      */
     public List<SearchResult> naturalSearch(String query, String timeRange, int maxResults) throws Exception {
-        String timeQueryString = normalizeTimeQuery(timeRange);
+        String timeQueryString = null;
+        if (timeRange.length() > 0) {
+            timeQueryString = normalizeTimeQuery(timeRange);
+        }
         //query = query.replaceAll("\\s+", " AND "); //no AND operator on keyword
         QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
         Query contentQuery = contentParser.parse(query);
 
-        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", analyzer);
-        Query timeQuery = timeParser.parse(timeQueryString);
+        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", kwAnalyzer);
+        Query timeQuery = null;
+        if (timeQueryString != null && timeQueryString.length() > 0) {
+            timeQuery = timeParser.parse(timeQueryString);
+        }
 
         TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
         Map<String, Float> docScoreMap = new HashMap<>();
@@ -130,7 +140,9 @@ public class TemporalEventSearch {
         QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
         Query contextQuery = contextParser.parse(query);
         bq.add(contextQuery, BooleanClause.Occur.MUST);
-        bq.add(timeQuery, BooleanClause.Occur.MUST);
+        if (timeQuery != null) {
+            bq.add(timeQuery, BooleanClause.Occur.MUST);
+        }
         TopDocs timeDocs = time_searcher.search(bq, maxResults);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {
@@ -156,14 +168,17 @@ public class TemporalEventSearch {
         Collections.sort(results);
         return results;
     }
-    
+
     public List<SearchResult> search(String query, String timeRange, int maxResults) throws Exception {
         //query = query.replaceAll("\\s+", " AND "); //no AND operator on keyword
         QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
         Query contentQuery = contentParser.parse(query);
 
-        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", analyzer);
-        Query timeQuery = timeParser.parse(timeRange);
+        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", kwAnalyzer);
+        Query timeQuery = null;
+        if (timeRange.length() > 0) {
+            timeQuery = timeParser.parse(timeRange);
+        }
 
         TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
         Map<String, Float> docScoreMap = new HashMap<>();
@@ -174,7 +189,9 @@ public class TemporalEventSearch {
         QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
         Query contextQuery = contextParser.parse(query);
         bq.add(contextQuery, BooleanClause.Occur.MUST);
-        bq.add(timeQuery, BooleanClause.Occur.MUST);
+        if (timeQuery != null) {
+            bq.add(timeQuery, BooleanClause.Occur.MUST);
+        }
         TopDocs timeDocs = time_searcher.search(bq, maxResults);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {
@@ -239,7 +256,5 @@ public class TemporalEventSearch {
     public void setSnipSize(int snipSize) {
         this.snipSize = snipSize;
     }
-    
-    
 
 }
