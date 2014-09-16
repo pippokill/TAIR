@@ -149,7 +149,7 @@ public class TEEShell {
     private void promptLoop() {
         println("");
         println("Welcome to TEE2 Shell " + VERSION);
-        println("Exit with quit or exit");
+        println("Exit with !quit or !exit");
 
         if (reader == null) {
             try {
@@ -169,11 +169,11 @@ public class TEEShell {
                 if (cmd.length() == 0) {
                     continue;
                 }
-                if ("exit".equalsIgnoreCase(cmd) || "quit".equalsIgnoreCase(cmd)) {
+                if ("!exit".equalsIgnoreCase(cmd) || "!quit".equalsIgnoreCase(cmd)) {
                     break;
-                } else if (cmd.toLowerCase().startsWith("help") || cmd.toLowerCase().startsWith("?")) {
+                } else if (cmd.toLowerCase().equalsIgnoreCase("!help") || cmd.equalsIgnoreCase("!?")) {
                     showHelp();
-                } else if ("history".equals(cmd.toLowerCase())) {
+                } else if ("!history".equals(cmd.toLowerCase())) {
                     for (int i = 0, size = history.size(); i < size; i++) {
                         String s = history.get(i);
                         s = s.replace('\n', ' ').replace('\r', ' ');
@@ -184,7 +184,7 @@ public class TEEShell {
                     } else {
                         println("No history");
                     }
-                } else if (cmd.toLowerCase().startsWith("runh")) {
+                } else if (cmd.toLowerCase().startsWith("!runh")) {
                     String[] split = cmd.split("\\s+");
                     if (split.length > 1) {
                         if (split[1].matches("[0-9]+")) {
@@ -218,7 +218,7 @@ public class TEEShell {
             //search
             List<SearchResult> res = null;
             int indexOf = cmd.indexOf("-temp");
-            if (indexOf > 0) {
+            if (indexOf > -1) {
                 String q = cmd.substring(0, indexOf).trim();
                 String t = cmd.substring(indexOf + 5).trim();
                 res = search.search(q, t, 10);

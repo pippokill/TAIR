@@ -172,7 +172,10 @@ public class TemporalEventSearch {
     public List<SearchResult> search(String query, String timeRange, int maxResults) throws Exception {
         //query = query.replaceAll("\\s+", " AND "); //no AND operator on keyword
         QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
-        Query contentQuery = contentParser.parse(query);
+        Query contentQuery = null;
+        if (query.length() > 0) {
+            contentQuery = contentParser.parse(query);
+        }
 
         QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", kwAnalyzer);
         Query timeQuery = null;
@@ -180,15 +183,19 @@ public class TemporalEventSearch {
             timeQuery = timeParser.parse(timeRange);
         }
 
-        TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
         Map<String, Float> docScoreMap = new HashMap<>();
-        for (ScoreDoc sd : topDocs.scoreDocs) {
-            docScoreMap.put(doc_searcher.doc(sd.doc).get("id"), sd.score);
+        if (contentQuery != null) {
+            TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
+            for (ScoreDoc sd : topDocs.scoreDocs) {
+                docScoreMap.put(doc_searcher.doc(sd.doc).get("id"), sd.score);
+            }
         }
         BooleanQuery bq = new BooleanQuery();
         QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
-        Query contextQuery = contextParser.parse(query);
-        bq.add(contextQuery, BooleanClause.Occur.MUST);
+        if (query.length() > 0) {
+            Query contextQuery = contextParser.parse(query);
+            bq.add(contextQuery, BooleanClause.Occur.MUST);
+        }
         if (timeQuery != null) {
             bq.add(timeQuery, BooleanClause.Occur.MUST);
         }
