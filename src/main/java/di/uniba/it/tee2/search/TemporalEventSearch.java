@@ -130,7 +130,8 @@ public class TemporalEventSearch {
         if (timeQueryString != null && timeQueryString.length() > 0) {
             timeQuery = timeParser.parse(timeQueryString);
         }
-
+        
+        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Doc query: {0}", contentQuery.toString());
         TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
         Map<String, Float> docScoreMap = new HashMap<>();
         for (ScoreDoc sd : topDocs.scoreDocs) {
@@ -143,6 +144,7 @@ public class TemporalEventSearch {
         if (timeQuery != null) {
             bq.add(timeQuery, BooleanClause.Occur.MUST);
         }
+        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Time query: {0}", bq.toString());
         TopDocs timeDocs = time_searcher.search(bq, maxResults);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {
@@ -185,6 +187,7 @@ public class TemporalEventSearch {
 
         Map<String, Float> docScoreMap = new HashMap<>();
         if (contentQuery != null) {
+            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Doc query: {0}", contentQuery.toString());
             TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
             for (ScoreDoc sd : topDocs.scoreDocs) {
                 docScoreMap.put(doc_searcher.doc(sd.doc).get("id"), sd.score);
@@ -199,6 +202,7 @@ public class TemporalEventSearch {
         if (timeQuery != null) {
             bq.add(timeQuery, BooleanClause.Occur.MUST);
         }
+        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Time query: {0}", bq.toString());
         TopDocs timeDocs = time_searcher.search(bq, maxResults);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {

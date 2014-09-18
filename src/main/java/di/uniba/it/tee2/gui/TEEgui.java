@@ -6,8 +6,10 @@
 package di.uniba.it.tee2.gui;
 
 import di.uniba.it.tee2.TemporalExtractor;
+import di.uniba.it.tee2.search.SearchResult;
 import di.uniba.it.tee2.search.TemporalEventSearch;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,12 +21,12 @@ public class TEEgui extends javax.swing.JFrame {
 
     private TemporalExtractor te;
 
-    private TemporalEventSearch search;
+    public static TemporalEventSearch search;
 
     private int ntop = 25;
-    
+
     private static String language;
-    
+
     private static String maindir;
 
     /**
@@ -46,28 +48,74 @@ public class TEEgui extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        searchTB = new javax.swing.JToolBar();
+        searchTF = new javax.swing.JTextField();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        tempTF = new javax.swing.JTextField();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        searchB = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        resultP = new javax.swing.JPanel();
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("TEE2 - GUI 0.20");
+
+        searchTB.setRollover(true);
+
+        searchTF.setColumns(20);
+        searchTB.add(searchTF);
+        searchTB.add(jSeparator1);
+
+        tempTF.setColumns(10);
+        searchTB.add(tempTF);
+        searchTB.add(jSeparator2);
+
+        searchB.setText("Search");
+        searchB.setFocusable(false);
+        searchB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        searchB.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        searchB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchBActionPerformed(evt);
+            }
+        });
+        searchTB.add(searchB);
+
+        getContentPane().add(searchTB, java.awt.BorderLayout.NORTH);
+
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(480, 320));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(640, 480));
+
+        resultP.setLayout(new javax.swing.BoxLayout(resultP, javax.swing.BoxLayout.PAGE_AXIS));
+        jScrollPane1.setViewportView(resultP);
+
+        getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void searchBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBActionPerformed
+        try {
+            List<SearchResult> list = search.search(searchTF.getText(), tempTF.getText(), ntop);
+            resultP.removeAll();
+            Logger.getLogger(TEEgui.class.getName()).log(Level.INFO, "Number of results: " + list.size());
+            for (SearchResult sr : list) {
+                SearchResultPanel srp = new SearchResultPanel(sr);
+                resultP.add(srp);
+            }
+            jScrollPane1.validate();
+        } catch (Exception ex) {
+            Logger.getLogger(TEEgui.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_searchBActionPerformed
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        language=args[0];
-        language=args[1];
+        language = args[0];
+        maindir = args[1];
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -104,5 +152,13 @@ public class TEEgui extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JPanel resultP;
+    private javax.swing.JButton searchB;
+    private javax.swing.JToolBar searchTB;
+    private javax.swing.JTextField searchTF;
+    private javax.swing.JTextField tempTF;
     // End of variables declaration//GEN-END:variables
 }

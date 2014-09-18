@@ -113,7 +113,7 @@ public class SearchResult implements Comparable<SearchResult> {
 
     @Override
     public int compareTo(SearchResult o) {
-        return Float.compare(score, o.score);
+        return Float.compare(o.score, score);
     }
 
     @Override
