@@ -224,7 +224,7 @@ public class TEEShell {
                 res = search.search(q, t, 10);
             } else {
                 String q = cmd.trim();
-                res = search.search(q, "", 50);
+                res = search.search(q, "", 10);
             }
             for (SearchResult r : res) {
                 println(r.toString());

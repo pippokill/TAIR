@@ -125,27 +125,35 @@ public class TemporalEventSearch {
         QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
         Query contentQuery = contentParser.parse(query);
 
-        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", kwAnalyzer);
-        Query timeQuery = null;
-        if (timeQueryString != null && timeQueryString.length() > 0) {
-            timeQuery = timeParser.parse(timeQueryString);
+        QueryParser timeParser = new QueryParser(Version.LUCENE_48, null, analyzer);
+        StringBuilder sbTimeQuery = new StringBuilder();
+        if (query.length() > 0) {
+            sbTimeQuery.append("context:(").append(query).append(")");
         }
-        
-        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Doc query: {0}", contentQuery.toString());
-        TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
+        if (timeRange.length() > 0) {
+            sbTimeQuery.append(" +time:(").append(timeQueryString).append(")");
+        }
+
         Map<String, Float> docScoreMap = new HashMap<>();
-        for (ScoreDoc sd : topDocs.scoreDocs) {
-            docScoreMap.put(doc_searcher.doc(sd.doc).get("id"), sd.score);
+        if (contentQuery != null) {
+            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Doc query: {0}", contentQuery.toString());
+            TopDocs topDocs = doc_searcher.search(contentQuery, 1000);
+            if (topDocs.scoreDocs.length > 0) {
+                sbTimeQuery.append(" +id:(");
+            }
+            for (ScoreDoc sd : topDocs.scoreDocs) {
+                String docid = doc_searcher.doc(sd.doc).get("id");
+                docScoreMap.put(docid, sd.score);
+                sbTimeQuery.append(docid).append(" ");
+            }
+            if (topDocs.scoreDocs.length > 0) {
+                sbTimeQuery.append(")");
+            }
         }
-        BooleanQuery bq = new BooleanQuery();
-        QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
-        Query contextQuery = contextParser.parse(query);
-        bq.add(contextQuery, BooleanClause.Occur.MUST);
-        if (timeQuery != null) {
-            bq.add(timeQuery, BooleanClause.Occur.MUST);
-        }
-        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Time query: {0}", bq.toString());
-        TopDocs timeDocs = time_searcher.search(bq, maxResults);
+
+        Query timeQuery = timeParser.parse(sbTimeQuery.toString());
+        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Time query: {0}", timeQuery.toString());
+        TopDocs timeDocs = time_searcher.search(timeQuery, 1000);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {
             Document timedoc = time_searcher.doc(sd.doc);
@@ -155,20 +163,26 @@ public class TemporalEventSearch {
                 String snip = createSnippet(text, Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
                 SearchResult sr = new SearchResult(sd.doc, docId);
                 sr.setSnip(snip);
-                Float score = docScoreMap.get(docId);
-                if (score != null) {
-                    sr.setScore(sd.score * score);
-                } else {
+                if (query.length() == 0) {
                     sr.setScore(sd.score);
+                    results.add(sr);
+                } else {
+                    Float score = docScoreMap.get(docId);
+                    if (score != null) {
+                        sr.setScore(sd.score * score);
+                        results.add(sr);
+                    }
                 }
-                results.add(sr);
-
             } else {
                 logger.log(Level.WARNING, "No text for doc: {0}", docId);
             }
         }
         Collections.sort(results);
-        return results;
+        if (results.size() > maxResults) {
+            return results.subList(0, maxResults);
+        } else {
+            return results;
+        }
     }
 
     public List<SearchResult> search(String query, String timeRange, int maxResults) throws Exception {
@@ -179,31 +193,35 @@ public class TemporalEventSearch {
             contentQuery = contentParser.parse(query);
         }
 
-        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", kwAnalyzer);
-        Query timeQuery = null;
+        QueryParser timeParser = new QueryParser(Version.LUCENE_48, null, analyzer);
+        StringBuilder sbTimeQuery = new StringBuilder();
+        if (query.length() > 0) {
+            sbTimeQuery.append("context:(").append(query).append(")");
+        }
         if (timeRange.length() > 0) {
-            timeQuery = timeParser.parse(timeRange);
+            sbTimeQuery.append(" +time:(").append(timeRange).append(")");
         }
 
         Map<String, Float> docScoreMap = new HashMap<>();
         if (contentQuery != null) {
-            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Doc query: {0}", contentQuery.toString());
-            TopDocs topDocs = doc_searcher.search(contentQuery, Integer.MAX_VALUE);
+            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Doc query: {0}", contentQuery.toString());
+            TopDocs topDocs = doc_searcher.search(contentQuery, 1000);
+            if (topDocs.scoreDocs.length > 0) {
+                sbTimeQuery.append(" +id:(");
+            }
             for (ScoreDoc sd : topDocs.scoreDocs) {
-                docScoreMap.put(doc_searcher.doc(sd.doc).get("id"), sd.score);
+                String docid = doc_searcher.doc(sd.doc).get("id");
+                docScoreMap.put(docid, sd.score);
+                sbTimeQuery.append(docid).append(" ");
+            }
+            if (topDocs.scoreDocs.length > 0) {
+                sbTimeQuery.append(")");
             }
         }
-        BooleanQuery bq = new BooleanQuery();
-        QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
-        if (query.length() > 0) {
-            Query contextQuery = contextParser.parse(query);
-            bq.add(contextQuery, BooleanClause.Occur.MUST);
-        }
-        if (timeQuery != null) {
-            bq.add(timeQuery, BooleanClause.Occur.MUST);
-        }
-        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.FINE, "Time query: {0}", bq.toString());
-        TopDocs timeDocs = time_searcher.search(bq, maxResults);
+
+        Query timeQuery = timeParser.parse(sbTimeQuery.toString());
+        Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Time query: {0}", timeQuery.toString());
+        TopDocs timeDocs = time_searcher.search(timeQuery, 1000);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {
             Document timedoc = time_searcher.doc(sd.doc);
@@ -213,20 +231,26 @@ public class TemporalEventSearch {
                 String snip = createSnippet(text, Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
                 SearchResult sr = new SearchResult(sd.doc, docId);
                 sr.setSnip(snip);
-                Float score = docScoreMap.get(docId);
-                if (score != null) {
-                    sr.setScore(sd.score * score);
-                } else {
+                if (query.length() == 0) {
                     sr.setScore(sd.score);
+                    results.add(sr);
+                } else {
+                    Float score = docScoreMap.get(docId);
+                    if (score != null) {
+                        sr.setScore(sd.score * score);
+                        results.add(sr);
+                    }
                 }
-                results.add(sr);
-
             } else {
                 logger.log(Level.WARNING, "No text for doc: {0}", docId);
             }
         }
         Collections.sort(results);
-        return results;
+        if (results.size() > maxResults) {
+            return results.subList(0, maxResults);
+        } else {
+            return results;
+        }
     }
 
     private String createSnippet(String text, int startm, int end) {
