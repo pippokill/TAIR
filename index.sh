@@ -8,6 +8,6 @@ do
   THE_CLASSPATH=${THE_CLASSPATH}:${i}
 done
 
-echo Run...
+echo Indexing...
 
-java -cp ".:${THE_CLASSPATH}" di.uniba.it.tee2.shell.TEEShell $1 $2 $3
+java -Xmx4g -cp ".:${THE_CLASSPATH}" di.uniba.it.tee2.wiki.Wikidump2IndexMT $1 $2 $3 $4 $5
