@@ -99,7 +99,6 @@ public class TextDirIndex {
                 content.append(reader.readLine()).append("\n");
             }
             pages.put(new TxtDoc(title, content.toString(), inFile.getName()));
-            Counter.increment();
         }
     }
 
