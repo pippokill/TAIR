@@ -49,6 +49,8 @@ public class SearchResult implements Comparable<SearchResult> {
     private float score;
 
     private String snip;
+    
+    private String title;
 
     public SearchResult(int indexId, String id) {
         this.indexId = indexId;
@@ -118,7 +120,15 @@ public class SearchResult implements Comparable<SearchResult> {
 
     @Override
     public String toString() {
-        return "SearchResult{" + "indexId=" + indexId + ", id=" + id + ", score=" + score + ", snip=" + snip + '}';
+        return "SearchResult{" + "indexId=" + indexId + ", id=" + id + ", score=" + score + ", snip=" + snip + ", title=" + title + '}';
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
     
     

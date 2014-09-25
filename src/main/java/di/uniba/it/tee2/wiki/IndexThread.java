@@ -45,7 +45,7 @@ public class IndexThread extends Thread {
                         if (text.length() > this.minTextLegth) {
                             try {
                                 int docid = Wikidump2IndexMT.incrementDoc();
-                                tee.add(text, wikiPage.getTitle(), String.valueOf(docid));
+                                tee.add(wikiPage.getTitle(), text, wikiPage.getTitle(), String.valueOf(docid));
                             } catch (Exception ex) {
                                 logger.log(Level.SEVERE, "Error to index page (skip page) " + wikiPage.getTitle(), ex);
                             }

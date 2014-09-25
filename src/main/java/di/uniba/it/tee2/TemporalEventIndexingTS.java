@@ -75,7 +75,7 @@ public class TemporalEventIndexingTS {
     public void init(String lang, String mainDir) throws IOException {
         //tempExtractor = new TemporalExtractor(lang);
         //tempExtractor.init();
-        this.lang=lang;
+        this.lang = lang;
         time_index = FSDirectory.open(new File(mainDir + "/time"));
         doc_index = FSDirectory.open(new File(mainDir + "/doc"));
         docrep_index = FSDirectory.open(new File(mainDir + "/repo"));
@@ -115,11 +115,12 @@ public class TemporalEventIndexingTS {
      * Crea e memorizza un documento xml a partire dalla stringa fornita in
      * input dopo averla taggata usando HeidelTime.
      *
+     * @param title
      * @param content
      * @param fileName
      * @param docID
      */
-    public void add(String content, String fileName, String docID) throws Exception {
+    public void add(String title, String content, String fileName, String docID) throws Exception {
         TaggedText tt = null;
         try {
             TemporalExtractor tempExtractor = new TemporalExtractor(lang);
@@ -133,12 +134,15 @@ public class TemporalEventIndexingTS {
             //stores id and text (not tagged) in docrep_index (document repository)
             Document docrep_doc = new Document();
             docrep_doc.add(new StringField("id", docID, Field.Store.YES));
+            docrep_doc.add(new StringField("title", title, Field.Store.YES));
             docrep_doc.add(new StringField("content", tt.getText(), Field.Store.YES));
+            docrep_doc.add(new StringField("filename", fileName, Field.Store.YES));
             docrep_writer.addDocument(docrep_doc);
 
             //stores id and text (not tagged) in doc_index for search
             Document doc_doc = new Document();
             doc_doc.add(new StringField("id", docID, Field.Store.YES));
+            doc_doc.add(new TextField("title", title, Field.Store.NO));
             doc_doc.add(new TextField("content", tt.getText(), Field.Store.NO));
             doc_writer.addDocument(doc_doc);
 

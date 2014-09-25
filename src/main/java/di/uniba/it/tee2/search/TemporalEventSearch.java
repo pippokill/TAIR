@@ -80,9 +80,15 @@ public class TemporalEventSearch {
 
     private static final Logger logger = Logger.getLogger(TemporalEventSearch.class.getName());
 
-    private StandardAnalyzer analyzer;
+    private final StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
 
-    private KeywordAnalyzer kwAnalyzer;
+    private final QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
+
+    private final QueryParser titleParser = new QueryParser(Version.LUCENE_48, "title", analyzer);
+
+    private final QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
+
+    private final QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", analyzer);
 
     private int snipSize = 128;
 
@@ -98,8 +104,6 @@ public class TemporalEventSearch {
         doc_searcher = new IndexSearcher(docReader);
         time_searcher = new IndexSearcher(timeReader);
         repo_searcher = new IndexSearcher(repoReader);
-        analyzer = new StandardAnalyzer(Version.LUCENE_48);
-        kwAnalyzer = new KeywordAnalyzer();
     }
 
     public void close() throws IOException {
@@ -121,48 +125,62 @@ public class TemporalEventSearch {
         if (timeRange.length() > 0) {
             timeQueryString = normalizeTimeQuery(timeRange);
         }
-        //query = query.replaceAll("\\s+", " AND "); //no AND operator on keyword
-        QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
-        Query contentQuery = contentParser.parse(query);
 
-        QueryParser timeParser = new QueryParser(Version.LUCENE_48, null, analyzer);
-        StringBuilder sbTimeQuery = new StringBuilder();
+        Query contentQuery = null;
+        Query titleQuery = null;
+        Query contextQuery = null;
         if (query.length() > 0) {
-            sbTimeQuery.append("context:(").append(query).append(")");
-        }
-        if (timeRange.length() > 0) {
-            sbTimeQuery.append(" +time:(").append(timeQueryString).append(")");
+            titleQuery = titleParser.parse(query);
+            contentQuery = contentParser.parse(query);
+            contextQuery = contextParser.parse(query);
         }
 
-        Map<String, Float> docScoreMap = new HashMap<>();
+        Query timeConstraint = null;
+        if (timeQueryString != null && timeQueryString.length() > 0) {
+            timeConstraint = timeParser.parse(timeQueryString);
+        }
+
+        BooleanQuery idQuery = new BooleanQuery();
+        BooleanQuery docQuery = new BooleanQuery();
+        if (titleQuery != null) {
+            docQuery.add(titleQuery, BooleanClause.Occur.SHOULD);
+        }
         if (contentQuery != null) {
-            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Doc query: {0}", contentQuery.toString());
+            docQuery.add(contentQuery, BooleanClause.Occur.SHOULD);
+        }
+        Map<String, Float> docScoreMap = new HashMap<>();
+        if (titleQuery != null || contentQuery != null) {
+            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Doc query: {0}", docQuery.toString());
             TopDocs topDocs = doc_searcher.search(contentQuery, 1000);
-            if (topDocs.scoreDocs.length > 0) {
-                sbTimeQuery.append(" +id:(");
-            }
             for (ScoreDoc sd : topDocs.scoreDocs) {
                 String docid = doc_searcher.doc(sd.doc).get("id");
                 docScoreMap.put(docid, sd.score);
-                sbTimeQuery.append(docid).append(" ");
-            }
-            if (topDocs.scoreDocs.length > 0) {
-                sbTimeQuery.append(")");
+                idQuery.add(new TermQuery(new Term("id", docid)), BooleanClause.Occur.SHOULD);
             }
         }
 
-        Query timeQuery = timeParser.parse(sbTimeQuery.toString());
+        BooleanQuery timeQuery = new BooleanQuery();
+        if (timeConstraint != null) {
+            timeQuery.add(timeConstraint, BooleanClause.Occur.MUST);
+        }
+        if (contextQuery != null) {
+            timeQuery.add(contextQuery, BooleanClause.Occur.SHOULD);
+        }
+        if (timeConstraint != null || contextQuery != null) {
+            timeQuery.add(idQuery, BooleanClause.Occur.MUST);
+        }
         Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Time query: {0}", timeQuery.toString());
         TopDocs timeDocs = time_searcher.search(timeQuery, 1000);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {
             Document timedoc = time_searcher.doc(sd.doc);
             String docId = timedoc.get("id");
-            String text = getDocumentText(docId);
-            if (text != null) {
-                String snip = createSnippet(text, Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
+            Document document = getDocument(docId);
+            if (document != null && document.get("content") != null) {
+                String snip = createSnippet(document.get("content"), Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
                 SearchResult sr = new SearchResult(sd.doc, docId);
                 sr.setSnip(snip);
+                sr.setTitle(document.get("title"));
                 if (query.length() == 0) {
                     sr.setScore(sd.score);
                     results.add(sr);
@@ -186,51 +204,61 @@ public class TemporalEventSearch {
     }
 
     public List<SearchResult> search(String query, String timeRange, int maxResults) throws Exception {
-        //query = query.replaceAll("\\s+", " AND "); //no AND operator on keyword
-        QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
         Query contentQuery = null;
+        Query titleQuery = null;
+        Query contextQuery = null;
         if (query.length() > 0) {
+            titleQuery = titleParser.parse(query);
             contentQuery = contentParser.parse(query);
+            contextQuery = contextParser.parse(query);
         }
 
-        QueryParser timeParser = new QueryParser(Version.LUCENE_48, null, analyzer);
-        StringBuilder sbTimeQuery = new StringBuilder();
-        if (query.length() > 0) {
-            sbTimeQuery.append("context:(").append(query).append(")");
-        }
-        if (timeRange.length() > 0) {
-            sbTimeQuery.append(" +time:(").append(timeRange).append(")");
+        Query timeConstraint = null;
+        if (timeRange != null && timeRange.length() > 0) {
+            timeConstraint = timeParser.parse(timeRange);
         }
 
-        Map<String, Float> docScoreMap = new HashMap<>();
+        BooleanQuery idQuery = new BooleanQuery();
+        BooleanQuery docQuery = new BooleanQuery();
+        if (titleQuery != null) {
+            docQuery.add(titleQuery, BooleanClause.Occur.SHOULD);
+        }
         if (contentQuery != null) {
-            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Doc query: {0}", contentQuery.toString());
+            docQuery.add(contentQuery, BooleanClause.Occur.SHOULD);
+        }
+        Map<String, Float> docScoreMap = new HashMap<>();
+        if (titleQuery != null || contentQuery != null) {
+            Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Doc query: {0}", docQuery.toString());
             TopDocs topDocs = doc_searcher.search(contentQuery, 1000);
-            if (topDocs.scoreDocs.length > 0) {
-                sbTimeQuery.append(" +id:(");
-            }
             for (ScoreDoc sd : topDocs.scoreDocs) {
                 String docid = doc_searcher.doc(sd.doc).get("id");
                 docScoreMap.put(docid, sd.score);
-                sbTimeQuery.append(docid).append(" ");
-            }
-            if (topDocs.scoreDocs.length > 0) {
-                sbTimeQuery.append(")");
+                idQuery.add(new TermQuery(new Term("id", docid)), BooleanClause.Occur.SHOULD);
             }
         }
 
-        Query timeQuery = timeParser.parse(sbTimeQuery.toString());
+        BooleanQuery timeQuery = new BooleanQuery();
+        if (timeConstraint != null) {
+            timeQuery.add(timeConstraint, BooleanClause.Occur.MUST);
+        }
+        if (contextQuery != null) {
+            timeQuery.add(contextQuery, BooleanClause.Occur.SHOULD);
+        }
+        if (timeConstraint != null || contextQuery != null) {
+            timeQuery.add(idQuery, BooleanClause.Occur.MUST);
+        }
         Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Time query: {0}", timeQuery.toString());
         TopDocs timeDocs = time_searcher.search(timeQuery, 1000);
         List<SearchResult> results = new ArrayList<>();
         for (ScoreDoc sd : timeDocs.scoreDocs) {
             Document timedoc = time_searcher.doc(sd.doc);
             String docId = timedoc.get("id");
-            String text = getDocumentText(docId);
-            if (text != null) {
-                String snip = createSnippet(text, Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
+            Document document = getDocument(docId);
+            if (document != null && document.get("content") != null) {
+                String snip = createSnippet(document.get("content"), Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
                 SearchResult sr = new SearchResult(sd.doc, docId);
                 sr.setSnip(snip);
+                sr.setTitle(document.get("title"));
                 if (query.length() == 0) {
                     sr.setScore(sd.score);
                     results.add(sr);
@@ -282,6 +310,19 @@ public class TemporalEventSearch {
         TopDocs hits = repo_searcher.search(query, 1);
         int docId = hits.scoreDocs[0].doc;
         return repo_searcher.doc(docId).get("content");
+    }
+
+    /**
+     * @param id
+     * @return
+     * @throws java.io.IOException
+     *
+     */
+    public Document getDocument(String id) throws IOException {
+        Query query = new TermQuery(new Term("id", id));
+        TopDocs hits = repo_searcher.search(query, 1);
+        int docId = hits.scoreDocs[0].doc;
+        return repo_searcher.doc(docId);
     }
 
     public int getSnipSize() {
