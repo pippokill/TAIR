@@ -47,6 +47,7 @@ import org.apache.commons.compress.compressors.CompressorException;
  *
  * @author pierpaolo
  */
+@Deprecated
 public class Wikidump2Index {
 
     private static final String notValidTitle = "^[A-Za-z\\s_-]+:.*$";

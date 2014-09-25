@@ -32,42 +32,37 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2.wiki;
+package di.uniba.it.tee2.text;
 
-import di.uniba.it.tee2.TemporalEventIndexing;
+import di.uniba.it.tee2.wiki.*;
 import di.uniba.it.tee2.TemporalEventIndexingTS;
 import di.uniba.it.tee2.util.Counter;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.stream.XMLStreamException;
-import org.apache.commons.compress.compressors.CompressorException;
 
 /**
  *
  * @author pierpaolo
  */
-public class Wikidump2IndexMT {
-
-    public static final String notValidTitle = "^[A-Za-z\\s_-]+:.*$";
+public class TextDirIndex {
 
     private int minTextLegth = 4000;
 
-    private static final Logger logger = Logger.getLogger(Wikidump2IndexMT.class.getName());
+    private static final Logger logger = Logger.getLogger(TextDirIndex.class.getName());
 
     private TemporalEventIndexingTS tee;
 
-    public static final String defaultEncoding = "ISO-8859-1";
-
     private int numberOfThreads = 4;
 
-    public static BlockingQueue<WikiPage> pages = new ArrayBlockingQueue<>(1000);
+    public static BlockingQueue<TxtDoc> pages = new ArrayBlockingQueue<>(1000);
 
     public int getMinTextLegth() {
         return minTextLegth;
@@ -87,34 +82,38 @@ public class Wikidump2IndexMT {
         build(new File(xmlDumpFilename));
     }
 
-    private void build(File xmlDump) throws Exception {
+    private void processFile(File inFile) throws IOException, InterruptedException {
+        if (inFile.isDirectory()) {
+            File[] files = inFile.listFiles();
+            for (File file : files) {
+                processFile(file);
+            }
+        } else {
+            BufferedReader reader = new BufferedReader(new FileReader(inFile));
+            String title = "";
+            StringBuilder content = new StringBuilder();
+            if (reader.ready()) {
+                title = reader.readLine();
+            }
+            while (reader.ready()) {
+                content.append(reader.readLine()).append("\n");
+            }
+            pages.put(new TxtDoc(title, content.toString(), inFile.getName()));
+            Counter.increment();
+        }
+    }
+
+    private void build(File startDir) throws Exception {
         try {
             Counter.init();
-            WikiPage poisonPage = new WikiPage();
-            poisonPage.setTitle("***POISON_PAGE***");
-            WikipediaDumpIterator wikiIterator = new WikipediaDumpIterator(xmlDump, defaultEncoding);
+            TxtDoc poisonPage = new TxtDoc("***POISON_PAGE***", "");
             List<Thread> threads = new ArrayList<>();
             for (int i = 0; i < numberOfThreads; i++) {
                 Thread thread = new IndexThread(tee, minTextLegth);
                 threads.add(thread);
                 thread.start();
             }
-            int counter = 0;
-            while (wikiIterator.hasNext()) {
-                try {
-                    WikiPage wikiPage = wikiIterator.next();
-                    String title = wikiPage.getTitle();
-                    byte[] bytes = title.getBytes("ISO-8859-1");
-                    title = new String(bytes, "UTF-8");
-                    if (!title.matches(notValidTitle)) {
-                        wikiPage.setTitle(title);
-                        Wikidump2IndexMT.pages.put(wikiPage);
-                        counter++;
-                    }
-                } catch (UnsupportedEncodingException | InterruptedException ex) {
-                    Logger.getLogger(Wikidump2IndexMT.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+            processFile(startDir);
 
             for (int i = 0; i < numberOfThreads; i++) {
                 pages.put(poisonPage);
@@ -124,35 +123,31 @@ public class Wikidump2IndexMT {
                 threads.get(i).join();
             }
 
-            logger.log(Level.INFO, "Extracted pages: {0}", counter);
             logger.log(Level.INFO, "Indexed pages: {0}", Counter.get());
-            wikiIterator.close();
             tee.close();
 
-        } catch (XMLStreamException | FileNotFoundException | CompressorException ex) {
+        } catch (IOException | InterruptedException ex) {
             logger.log(Level.SEVERE, "Error to build index", ex);
         }
 
     }
 
     /**
-     * language xml_dump output_dir n_thread encoding
+     * language_0 starting_dir_1 output_dir_2 n_thread_3
      *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         try {
-            Wikidump2IndexMT builder = new Wikidump2IndexMT();
-            builder.init(args[0], args[2], Integer.parseInt(args[3]));
-            if (args.length > 3) {
+            if (args.length == 4) {
+                TextDirIndex builder = new TextDirIndex();
+                builder.init(args[0], args[2], Integer.parseInt(args[3]));
                 builder.build(args[1]);
-            } /*else if (args.length > 4) {
-             builder.build(args[1], args[4]);
-             } */ else {
+            } else {
                 throw new Exception("No valid arguments");
             }
         } catch (Exception ex) {
-            Logger.getLogger(Wikidump2IndexMT.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TextDirIndex.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
