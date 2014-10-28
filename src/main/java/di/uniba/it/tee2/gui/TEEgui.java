@@ -29,12 +29,15 @@ public class TEEgui extends javax.swing.JFrame {
 
     private static String maindir;
 
+    private boolean nlsearch = false;
+
     /**
      * Creates new form TEEgui
      */
     public TEEgui() throws IOException {
         initComponents();
         te = new TemporalExtractor(language);
+        te.init();
         search = new TemporalEventSearch(maindir, te);
         search.init();
     }
@@ -54,6 +57,7 @@ public class TEEgui extends javax.swing.JFrame {
         tempTF = new javax.swing.JTextField();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         searchB = new javax.swing.JButton();
+        jCheckBox1 = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         resultP = new javax.swing.JPanel();
 
@@ -81,6 +85,17 @@ public class TEEgui extends javax.swing.JFrame {
         });
         searchTB.add(searchB);
 
+        jCheckBox1.setText("NL");
+        jCheckBox1.setFocusable(false);
+        jCheckBox1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jCheckBox1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jCheckBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox1ActionPerformed(evt);
+            }
+        });
+        searchTB.add(jCheckBox1);
+
         getContentPane().add(searchTB, java.awt.BorderLayout.NORTH);
 
         jScrollPane1.setMinimumSize(new java.awt.Dimension(480, 320));
@@ -96,7 +111,12 @@ public class TEEgui extends javax.swing.JFrame {
 
     private void searchBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBActionPerformed
         try {
-            List<SearchResult> list = search.search(searchTF.getText(), tempTF.getText(), ntop);
+            List<SearchResult> list = null;
+            if (nlsearch) {
+                list = search.naturalSearch(searchTF.getText(), tempTF.getText(), ntop);
+            } else {
+                list = search.search(searchTF.getText(), tempTF.getText(), ntop);
+            }
             resultP.removeAll();
             Logger.getLogger(TEEgui.class.getName()).log(Level.INFO, "Number of results: " + list.size());
             for (SearchResult sr : list) {
@@ -109,6 +129,10 @@ public class TEEgui extends javax.swing.JFrame {
         }
 
     }//GEN-LAST:event_searchBActionPerformed
+
+    private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
+        nlsearch = jCheckBox1.isSelected();
+    }//GEN-LAST:event_jCheckBox1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -152,6 +176,7 @@ public class TEEgui extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;

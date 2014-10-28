@@ -54,7 +54,7 @@ import java.util.logging.Logger;
  * @h2.resource
  */
 public class TEEShell {
-
+    
     private static final int HISTORY_COUNT = 20;
     private static final String PROMPT = "TEE2";
     private InputStream in = System.in;
@@ -66,9 +66,9 @@ public class TEEShell {
      * The output stream where this tool writes to.
      */
     public static PrintStream out = System.out;
-
+    
     private TemporalExtractor te;
-
+    
     private TemporalEventSearch search;
 
     /**
@@ -79,16 +79,18 @@ public class TEEShell {
     public void setOut(PrintStream out) {
         TEEShell.out = out;
     }
-
+    
     public TEEShell(String language, String maindir, String charset) throws IOException {
         te = new TemporalExtractor(language);
+        te.init();
         search = new TemporalEventSearch(maindir, te);
         search.init();
         this.charset = charset;
     }
-
+    
     public TEEShell(String language, String maindir) throws IOException {
         te = new TemporalExtractor(language);
+        te.init();
         search = new TemporalEventSearch(maindir, te);
         search.init();
     }
@@ -111,11 +113,11 @@ public class TEEShell {
             Logger.getLogger(TEEShell.class.getName()).log(Level.SEVERE, "General error", ex);
         }
     }
-
+    
     public static void printMessageError(String errorMsg) {
         println("Error: " + errorMsg);
     }
-
+    
     public static void printException(Exception ex) {
         printMessageError(ex.getMessage());
     }
@@ -137,7 +139,7 @@ public class TEEShell {
     public void setInReader(BufferedReader reader) {
         this.reader = reader;
     }
-
+    
     private void showHelp() {
         println("Commands are case insensitive");
         println("help or ?      Display this help");
@@ -145,12 +147,12 @@ public class TEEShell {
         println("quit or exit   Close and exit");
         println("");
     }
-
+    
     private void promptLoop() {
         println("");
         println("Welcome to TEE2 Shell " + VERSION);
         println("Exit with !quit or !exit");
-
+        
         if (reader == null) {
             try {
                 reader = new BufferedReader(new InputStreamReader(in, charset));
@@ -212,7 +214,7 @@ public class TEEShell {
         }
         exit(0);
     }
-
+    
     private void executeSearch(String cmd) {
         try {
             //search
@@ -221,7 +223,11 @@ public class TEEShell {
             if (indexOf > -1) {
                 String q = cmd.substring(0, indexOf).trim();
                 String t = cmd.substring(indexOf + 5).trim();
-                res = search.search(q, t, 10);
+                if (cmd.endsWith("-nl")) {
+                    res = search.naturalSearch(q, t.substring(0, t.length() - 3), 10);
+                } else {
+                    res = search.search(q, t, 10);
+                }
             } else {
                 String q = cmd.trim();
                 res = search.search(q, "", 10);
@@ -247,17 +253,17 @@ public class TEEShell {
         out.print(s);
         out.flush();
     }
-
+    
     public static void println(String s) {
         out.println(s);
         out.flush();
     }
-
+    
     private String readLine(String defaultValue) throws IOException {
         String s = readLine();
         return s.length() == 0 ? defaultValue : s;
     }
-
+    
     private String readLine() throws IOException {
         String line = reader.readLine();
         if (line == null) {
@@ -265,7 +271,7 @@ public class TEEShell {
         }
         return line;
     }
-
+    
     private void exit(int code) {
         try {
             search.close();
@@ -276,5 +282,5 @@ public class TEEShell {
         }
         System.exit(code);
     }
-
+    
 }
