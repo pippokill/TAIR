@@ -47,6 +47,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 
 /**
  *
@@ -131,6 +136,18 @@ public class TextDirIndex {
 
     }
 
+    static final Options options;
+
+    static CommandLineParser cmdParser = new BasicParser();
+
+    static {
+        options = new Options();
+        options.addOption("l", true, "language (italian, english)")
+                .addOption("i", true, "the input directory (files to index)")
+                .addOption("o", true, "the output directory")
+                .addOption("n", true, "number of threads (optional, default 2)");
+    }
+
     /**
      * language_0 starting_dir_1 output_dir_2 n_thread_3
      *
@@ -138,12 +155,15 @@ public class TextDirIndex {
      */
     public static void main(String[] args) {
         try {
-            if (args.length == 4) {
+            CommandLine cmd = cmdParser.parse(options, args);
+            if (cmd.hasOption("l") && cmd.hasOption("i") && cmd.hasOption("o")) {
+                int nt = Integer.parseInt(cmd.getOptionValue("n", "2"));
                 TextDirIndex builder = new TextDirIndex();
-                builder.init(args[0], args[2], Integer.parseInt(args[3]));
-                builder.build(args[0], args[1]);
+                builder.init(cmd.getOptionValue("l"), cmd.getOptionValue("o"), nt);
+                builder.build(cmd.getOptionValue("l"), cmd.getOptionValue("i"));
             } else {
-                throw new Exception("No valid arguments");
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Index a directory", options, true);
             }
         } catch (Exception ex) {
             Logger.getLogger(TextDirIndex.class.getName()).log(Level.SEVERE, null, ex);

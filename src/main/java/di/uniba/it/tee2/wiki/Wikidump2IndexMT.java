@@ -38,7 +38,6 @@ import di.uniba.it.tee2.TemporalEventIndexingTS;
 import di.uniba.it.tee2.util.Counter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -46,6 +45,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 import org.apache.commons.compress.compressors.CompressorException;
 
 /**
@@ -56,26 +60,19 @@ public class Wikidump2IndexMT {
 
     public static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Z][a-z].*$";
 
-    private int minTextLegth = 4000;
+    private static int minTextLegth = 4000;
 
     private static final Logger logger = Logger.getLogger(Wikidump2IndexMT.class.getName());
 
     private TemporalEventIndexingTS tee;
 
     //public static final String defaultEncoding = "ISO-8859-1";
-    private static final String defaultEncoding = "UTF-8";
+    private static String encoding = "UTF-8";
 
     private int numberOfThreads = 4;
 
     public static BlockingQueue<WikiPage> pages = new ArrayBlockingQueue<>(1000);
-
-    public int getMinTextLegth() {
-        return minTextLegth;
-    }
-
-    public void setMinTextLegth(int minTextLegth) {
-        this.minTextLegth = minTextLegth;
-    }
+  
 
     public void init(String lang, String mainDir, int nt) throws Exception {
         tee = new TemporalEventIndexingTS();
@@ -92,7 +89,7 @@ public class Wikidump2IndexMT {
             Counter.init();
             WikiPage poisonPage = new WikiPage();
             poisonPage.setTitle("***POISON_PAGE***");
-            WikipediaDumpIterator wikiIterator = new WikipediaDumpIterator(xmlDump, defaultEncoding);
+            WikipediaDumpIterator wikiIterator = new WikipediaDumpIterator(xmlDump, encoding);
             List<Thread> threads = new ArrayList<>();
             for (int i = 0; i < numberOfThreads; i++) {
                 Thread thread = new IndexThread(tee, language, minTextLegth);
@@ -133,6 +130,20 @@ public class Wikidump2IndexMT {
 
     }
 
+    static final Options options;
+
+    static CommandLineParser cmdParser = new BasicParser();
+
+    static {
+        options = new Options();
+        options.addOption("l", true, "language (italian, english)")
+                .addOption("d", true, "wikiepdia dump file")
+                .addOption("o", true, "output index directory")
+                .addOption("m", true, "min text length (optional, default 4000 characters)")
+                .addOption("n", true, "number of threads (optional, default 2)")
+                .addOption("e", true, "charset encoding (optional, default UTF-8)");
+    }
+
     /**
      * language xml_dump output_dir n_thread encoding
      *
@@ -140,12 +151,17 @@ public class Wikidump2IndexMT {
      */
     public static void main(String[] args) {
         try {
-            if (args.length > 3) {
+            CommandLine cmd = cmdParser.parse(options, args);
+            if (cmd.hasOption("l") && cmd.hasOption("d") && cmd.hasOption("o")) {
+                encoding = cmd.getOptionValue("e", "UTF-8");
+                minTextLegth=Integer.parseInt(cmd.getOptionValue("m","4000"));
+                int nt = Integer.parseInt(cmd.getOptionValue("n", "2"));
                 Wikidump2IndexMT builder = new Wikidump2IndexMT();
-                builder.init(args[0], args[2], Integer.parseInt(args[3]));
-                builder.build(args[0], args[1]);
+                builder.init(cmd.getOptionValue("l"), cmd.getOptionValue("o"), nt);
+                builder.build(cmd.getOptionValue("l"), cmd.getOptionValue("d"));
             } else {
-                throw new Exception("No valid arguments");
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Index Wikipedia dump (multi threads)", options, true);
             }
         } catch (Exception ex) {
             Logger.getLogger(Wikidump2IndexMT.class.getName()).log(Level.SEVERE, null, ex);

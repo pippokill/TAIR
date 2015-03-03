@@ -32,12 +32,16 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2.search;
+package di.uniba.it.tee2.wiki;
 
-import di.uniba.it.tee2.TemporalExtractor;
-import java.util.List;
+import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -49,7 +53,11 @@ import org.apache.commons.cli.ParseException;
  *
  * @author pierpaolo
  */
-public class Search {
+public class Wikidump2Text {
+
+    private static String encoding = "UTF-8";
+
+    private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Z][a-z].*$";
 
     static final Options options;
 
@@ -58,40 +66,55 @@ public class Search {
     static {
         options = new Options();
         options.addOption("l", true, "language (italian, english)")
-                .addOption("d", true, "the index directory")
-                .addOption("q", true, "text query")
-                .addOption("t", true, "temporal query (optional)");
+                .addOption("d", true, "the Wikipedia dump")
+                .addOption("o", true, "the output file")
+                .addOption("e", true, "charset encoding (optional)");
     }
 
     /**
-     * language maindir query temp_query
-     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         try {
             CommandLine cmd = cmdParser.parse(options, args);
-            if (cmd.hasOption("l") && cmd.hasOption("d") && cmd.hasOption("q")) {
+            if (cmd.hasOption("l") && cmd.hasOption("d") && cmd.hasOption("o")) {
+                encoding = cmd.getOptionValue("e", "UTF-8");
+                int counter = 0;
                 try {
-                    TemporalExtractor te = new TemporalExtractor(cmd.getOptionValue("l"));
-                    te.init();
-                    TemporalEventSearch search = new TemporalEventSearch(cmd.getOptionValue("d"), te);
-                    search.init();
-                    List<SearchResult> res = search.search(cmd.getOptionValue("q"), cmd.getOptionValue("t", ""), 100);
-                    for (SearchResult r : res) {
-                        System.out.println(r);
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(cmd.getOptionValue("o"))), "UTF-8"));
+                    WikipediaDumpIterator it = new WikipediaDumpIterator(new File(cmd.getOptionValue("d")), encoding);
+                    PageCleaner cleaner = PageCleanerWrapper.getInstance(cmd.getOptionValue("l"));
+                    while (it.hasNext()) {
+                        WikiPage wikiPage = it.next();
+                        ParsedPage parsedPage = wikiPage.getParsedPage();
+                        if (parsedPage != null) {
+                            String title = wikiPage.getTitle();
+                            if (!title.matches(notValidTitle)) {
+                                if (parsedPage.getText() != null) {
+                                    writer.append(cleaner.clean(parsedPage.getText()));
+                                    writer.newLine();
+                                    writer.newLine();
+                                    counter++;
+                                    if (counter % 10000 == 0) {
+                                        System.out.println(counter);
+                                        writer.flush();
+                                    }
+                                }
+                            }
+                        }
                     }
-                    search.close();
-                    te.close();
+                    writer.flush();
+                    writer.close();
                 } catch (Exception ex) {
-                    Logger.getLogger(Search.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(Wikidump2Text.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                System.out.println("Indexed pages: " + counter);
             } else {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Run searching", options, true);
+                helpFormatter.printHelp("Wikipedia dump to text", options, true);
             }
         } catch (ParseException ex) {
-            Logger.getLogger(Search.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Wikidump2Text.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

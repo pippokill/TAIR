@@ -41,6 +41,11 @@ import java.io.FileNotFoundException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 import org.apache.commons.compress.compressors.CompressorException;
 
 /**
@@ -52,33 +57,24 @@ public class Wikidump2Index {
 
     private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Z][a-z].*$";
 
-    private int minTextLegth = 4000;
+    private static int minTextLegth = 4000;
 
     private static final Logger logger = Logger.getLogger(Wikidump2Index.class.getName());
 
     private TemporalEventIndexing tee;
 
-    //private static final String defaultEncoding = "ISO-8859-1";
-    private static final String defaultEncoding = "UTF-8";
-
-    public int getMinTextLegth() {
-        return minTextLegth;
-    }
-
-    public void setMinTextLegth(int minTextLegth) {
-        this.minTextLegth = minTextLegth;
-    }
+    private static String encoding = "UTF-8";
 
     public void init(String lang, String mainDir) throws Exception {
         tee = new TemporalEventIndexing();
         tee.init(lang, mainDir);
     }
 
-    public void build(String xmlDumpFilename, String language, String encoding) throws Exception {
-        build(new File(xmlDumpFilename), language, encoding);
+    public void build(String xmlDumpFilename, String language) throws Exception {
+        build(new File(xmlDumpFilename), language);
     }
 
-    private void build(File xmlDump, String language, String encoding) throws Exception {
+    private void build(File xmlDump, String language) throws Exception {
         try {
             WikipediaDumpIterator wikiIterator = new WikipediaDumpIterator(xmlDump, encoding);
             PageCleaner cleaner = PageCleanerWrapper.getInstance(language);
@@ -119,6 +115,19 @@ public class Wikidump2Index {
 
     }
 
+    static final Options options;
+
+    static CommandLineParser cmdParser = new BasicParser();
+
+    static {
+        options = new Options();
+        options.addOption("l", true, "language (italian, english)")
+                .addOption("d", true, "wikiepdia dump file")
+                .addOption("o", true, "output index directory")
+                .addOption("m", true, "min text length (optional, default 4000 characters)")
+                .addOption("e", true, "charset encoding (optional, default UTF-8)");
+    }
+
     /**
      * language xml_dump output_dir encoding
      *
@@ -126,14 +135,16 @@ public class Wikidump2Index {
      */
     public static void main(String[] args) {
         try {
-            Wikidump2Index builder = new Wikidump2Index();
-            builder.init(args[0], args[2]);
-            if (args.length == 3) {
-                builder.build(args[1], args[0], defaultEncoding);
-            } else if (args.length > 3) {
-                builder.build(args[1], args[0], args[3]);
+            CommandLine cmd = cmdParser.parse(options, args);
+            if (cmd.hasOption("l") && cmd.hasOption("d") && cmd.hasOption("o")) {
+                encoding = cmd.getOptionValue("e", "UTF-8");
+                minTextLegth=Integer.parseInt(cmd.getOptionValue("m","4000"));
+                Wikidump2Index builder = new Wikidump2Index();
+                builder.init(cmd.getOptionValue("l"), cmd.getOptionValue("o"));
+                builder.build(cmd.getOptionValue("d"), cmd.getOptionValue("l"));
             } else {
-                throw new Exception("No valid arguments");
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Index Wikipedia dump (single thread)", options, true);
             }
         } catch (Exception ex) {
             Logger.getLogger(Wikidump2Index.class.getName()).log(Level.SEVERE, null, ex);

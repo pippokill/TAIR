@@ -47,6 +47,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 /**
  * Interactive command line tool to access a database using JDBC.
@@ -54,21 +60,32 @@ import java.util.logging.Logger;
  * @h2.resource
  */
 public class TEEShell {
-    
+
     private static final int HISTORY_COUNT = 20;
     private static final String PROMPT = "TEE2";
     private InputStream in = System.in;
     private BufferedReader reader;
     private final List<String> history = new ArrayList();
     public static final String VERSION = "2.00a";
-    private String charset = "ISO-8859-1";
+    private static final String DEFAULT_CHARSET = "ISO-8859-1";
+    private final String charset;
+    static final Options options;
+
+    static CommandLineParser cmdParser = new BasicParser();
+
+    static {
+        options = new Options();
+        options.addOption("l", true, "language (italian, english)")
+                .addOption("d", true, "the index directory")
+                .addOption("e", true, "charset encoding (optional)");
+    }
     /**
      * The output stream where this tool writes to.
      */
     public static PrintStream out = System.out;
-    
+
     private TemporalExtractor te;
-    
+
     private TemporalEventSearch search;
 
     /**
@@ -79,7 +96,7 @@ public class TEEShell {
     public void setOut(PrintStream out) {
         TEEShell.out = out;
     }
-    
+
     public TEEShell(String language, String maindir, String charset) throws IOException {
         te = new TemporalExtractor(language);
         te.init();
@@ -87,12 +104,13 @@ public class TEEShell {
         search.init();
         this.charset = charset;
     }
-    
+
     public TEEShell(String language, String maindir) throws IOException {
         te = new TemporalExtractor(language);
         te.init();
         search = new TemporalEventSearch(maindir, te);
         search.init();
+        charset = DEFAULT_CHARSET;
     }
 
     /**
@@ -102,22 +120,23 @@ public class TEEShell {
      */
     public static void main(String[] args) {
         try {
-            TEEShell shell = null;
-            if (args.length == 3) {
-                shell = new TEEShell(args[0], args[1], args[2]);
-            } else if (args.length == 2) {
-                shell = new TEEShell(args[0], args[1]);
+            CommandLine cmd = cmdParser.parse(options, args);
+            if (cmd.hasOption("l") && cmd.hasOption("d")) {
+                TEEShell shell = new TEEShell(cmd.getOptionValue("l"), cmd.getOptionValue("d"), cmd.getOptionValue("e", DEFAULT_CHARSET));
+                shell.promptLoop();
+            } else {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Run TEE2 console", options, true);
             }
-            shell.promptLoop();
-        } catch (Exception ex) {
+        } catch (ParseException | IOException ex) {
             Logger.getLogger(TEEShell.class.getName()).log(Level.SEVERE, "General error", ex);
         }
     }
-    
+
     public static void printMessageError(String errorMsg) {
         println("Error: " + errorMsg);
     }
-    
+
     public static void printException(Exception ex) {
         printMessageError(ex.getMessage());
     }
@@ -139,7 +158,7 @@ public class TEEShell {
     public void setInReader(BufferedReader reader) {
         this.reader = reader;
     }
-    
+
     private void showHelp() {
         println("Commands are case insensitive");
         println("help or ?      Display this help");
@@ -147,12 +166,12 @@ public class TEEShell {
         println("quit or exit   Close and exit");
         println("");
     }
-    
+
     private void promptLoop() {
         println("");
         println("Welcome to TEE2 Shell " + VERSION);
         println("Exit with !quit or !exit");
-        
+
         if (reader == null) {
             try {
                 reader = new BufferedReader(new InputStreamReader(in, charset));
@@ -214,7 +233,7 @@ public class TEEShell {
         }
         exit(0);
     }
-    
+
     private void executeSearch(String cmd) {
         try {
             //search
@@ -253,17 +272,17 @@ public class TEEShell {
         out.print(s);
         out.flush();
     }
-    
+
     public static void println(String s) {
         out.println(s);
         out.flush();
     }
-    
+
     private String readLine(String defaultValue) throws IOException {
         String s = readLine();
         return s.length() == 0 ? defaultValue : s;
     }
-    
+
     private String readLine() throws IOException {
         String line = reader.readLine();
         if (line == null) {
@@ -271,7 +290,7 @@ public class TEEShell {
         }
         return line;
     }
-    
+
     private void exit(int code) {
         try {
             search.close();
@@ -282,5 +301,5 @@ public class TEEShell {
         }
         System.exit(code);
     }
-    
+
 }
