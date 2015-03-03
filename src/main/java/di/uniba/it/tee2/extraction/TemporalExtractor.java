@@ -78,6 +78,12 @@ public class TemporalExtractor {
         heidelTagger = new HeidelTimeStandalone(langObj, DocumentType.NARRATIVES, OutputType.TIMEML, "config.props");
     }
 
+    public String getLanguage() {
+        return langObj.getName();
+    }
+    
+    
+
     private String escapeXML(String xmlString) throws Exception {
         int startIndex = xmlString.indexOf("<TimeML>");
         int endIndex = xmlString.indexOf("</TimeML>");

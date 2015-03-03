@@ -34,6 +34,8 @@
  */
 package di.uniba.it.tee2.index;
 
+import di.uniba.it.tee2.analyzer.EnglishNoStemAnalyzer;
+import di.uniba.it.tee2.analyzer.ItalianNoStemAnalyzer;
 import di.uniba.it.tee2.extraction.TemporalExtractor;
 import di.uniba.it.tee2.data.TaggedText;
 import di.uniba.it.tee2.data.TimeEvent;
@@ -79,7 +81,17 @@ public class TemporalEventIndexing {
         time_index = FSDirectory.open(new File(mainDir + "/time"));
         doc_index = FSDirectory.open(new File(mainDir + "/doc"));
         docrep_index = FSDirectory.open(new File(mainDir + "/repo"));
-        analyzer = new StandardAnalyzer(Version.LUCENE_48);
+        switch (lang) {
+            case "italian":
+                analyzer = new ItalianNoStemAnalyzer(Version.LUCENE_48);
+                break;
+            case "english":
+                analyzer = new EnglishNoStemAnalyzer(Version.LUCENE_48);
+                break;
+            default:
+                analyzer = new StandardAnalyzer(Version.LUCENE_48);
+                break;
+        }
         IndexWriterConfig configTime = new IndexWriterConfig(Version.LUCENE_48, analyzer);
         configTime.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         time_writer = new IndexWriter(time_index, configTime);

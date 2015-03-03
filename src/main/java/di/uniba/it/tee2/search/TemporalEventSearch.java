@@ -34,6 +34,8 @@
  */
 package di.uniba.it.tee2.search;
 
+import di.uniba.it.tee2.analyzer.EnglishNoStemAnalyzer;
+import di.uniba.it.tee2.analyzer.ItalianNoStemAnalyzer;
 import di.uniba.it.tee2.extraction.TemporalExtractor;
 import di.uniba.it.tee2.data.TaggedText;
 import di.uniba.it.tee2.data.TimeEvent;
@@ -46,7 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -80,21 +82,27 @@ public class TemporalEventSearch {
 
     private static final Logger logger = Logger.getLogger(TemporalEventSearch.class.getName());
 
-    private final StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_48);
-
-    private final QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
-
-    private final QueryParser titleParser = new QueryParser(Version.LUCENE_48, "title", analyzer);
-
-    private final QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
-
-    private final QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", analyzer);
+    private final Analyzer analyzer;
 
     private int snipSize = 128;
+
+    private final String language;
 
     public TemporalEventSearch(String mainDir, TemporalExtractor tempExtractor) {
         this.mainDir = mainDir;
         this.tempExtractor = tempExtractor;
+        this.language = tempExtractor.getLanguage();
+        switch (language) {
+            case "italian":
+                analyzer = new ItalianNoStemAnalyzer(Version.LUCENE_48);
+                break;
+            case "english":
+                analyzer = new EnglishNoStemAnalyzer(Version.LUCENE_48);
+                break;
+            default:
+                analyzer = new StandardAnalyzer(Version.LUCENE_48);
+                break;
+        }
     }
 
     public void init() throws IOException {
@@ -121,6 +129,10 @@ public class TemporalEventSearch {
      *
      */
     public List<SearchResult> naturalSearch(String query, String timeRange, int maxResults) throws Exception {
+        QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
+        QueryParser titleParser = new QueryParser(Version.LUCENE_48, "title", analyzer);
+        QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
+        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", analyzer);
         String timeQueryString = null;
         if (timeRange.length() > 0) {
             timeQueryString = normalizeTimeQuery(timeRange);
@@ -204,6 +216,10 @@ public class TemporalEventSearch {
     }
 
     public List<SearchResult> search(String query, String timeRange, int maxResults) throws Exception {
+        QueryParser contentParser = new QueryParser(Version.LUCENE_48, "content", analyzer);
+        QueryParser titleParser = new QueryParser(Version.LUCENE_48, "title", analyzer);
+        QueryParser contextParser = new QueryParser(Version.LUCENE_48, "context", analyzer);
+        QueryParser timeParser = new QueryParser(Version.LUCENE_48, "time", analyzer);
         Query contentQuery = null;
         Query titleQuery = null;
         Query contextQuery = null;
