@@ -55,7 +55,7 @@ import org.apache.commons.compress.compressors.CompressorException;
 @Deprecated
 public class Wikidump2Index {
 
-    private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Z][a-z].*$";
+    private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Za-z].*$";
 
     private static int minTextLegth = 4000;
 

@@ -57,7 +57,7 @@ public class Wikidump2Text {
 
     private static String encoding = "UTF-8";
 
-    private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Z][a-z].*$";
+    private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Za-z].*$";
 
     static final Options options;
 
