@@ -45,6 +45,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntField;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
@@ -135,7 +136,7 @@ public class TemporalEventIndexingTS {
             Document docrep_doc = new Document();
             docrep_doc.add(new StringField("id", docID, Field.Store.YES));
             docrep_doc.add(new StringField("title", title, Field.Store.YES));
-            docrep_doc.add(new StringField("content", tt.getText(), Field.Store.YES));
+            docrep_doc.add(new StoredField("content", tt.getText()));
             docrep_doc.add(new StringField("filename", fileName, Field.Store.YES));
             docrep_writer.addDocument(docrep_doc);
 

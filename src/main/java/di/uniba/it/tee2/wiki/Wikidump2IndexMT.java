@@ -72,7 +72,6 @@ public class Wikidump2IndexMT {
     private int numberOfThreads = 4;
 
     public static BlockingQueue<WikiPage> pages = new ArrayBlockingQueue<>(1000);
-  
 
     public void init(String lang, String mainDir, int nt) throws Exception {
         tee = new TemporalEventIndexingTS();
@@ -154,11 +153,11 @@ public class Wikidump2IndexMT {
             CommandLine cmd = cmdParser.parse(options, args);
             if (cmd.hasOption("l") && cmd.hasOption("d") && cmd.hasOption("o")) {
                 encoding = cmd.getOptionValue("e", "UTF-8");
-                minTextLegth=Integer.parseInt(cmd.getOptionValue("m","4000"));
+                minTextLegth = Integer.parseInt(cmd.getOptionValue("m", "4000"));
                 int nt = Integer.parseInt(cmd.getOptionValue("n", "2"));
                 Wikidump2IndexMT builder = new Wikidump2IndexMT();
                 builder.init(cmd.getOptionValue("l"), cmd.getOptionValue("o"), nt);
-                builder.build(cmd.getOptionValue("l"), cmd.getOptionValue("d"));
+                builder.build(cmd.getOptionValue("d"), cmd.getOptionValue("l"));
             } else {
                 HelpFormatter helpFormatter = new HelpFormatter();
                 helpFormatter.printHelp("Index Wikipedia dump (multi threads)", options, true);

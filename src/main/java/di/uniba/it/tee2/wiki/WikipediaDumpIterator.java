@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -73,11 +74,15 @@ public class WikipediaDumpIterator implements Iterator<WikiPage> {
         parser = parserFactory.createParser();
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         if (xmlFile.getName().endsWith(".bz2")) {
-            logger.log(Level.INFO, "Trying to open compress dumb...");
+            logger.log(Level.INFO, "Trying to open Wikipedia compress dump (bzip2)...");
             BZip2CompressorInputStream compressIS = new BZip2CompressorInputStream(new BufferedInputStream(new FileInputStream(xmlFile)));
             xmlStreamReader = inputFactory.createXMLStreamReader(compressIS, encoding);
+        } else if (xmlFile.getName().endsWith(".gz")) {
+            logger.log(Level.INFO, "Trying to open Wikipedia compress dump (gzip)...");
+            GZIPInputStream compressIS = new GZIPInputStream(new BufferedInputStream(new FileInputStream(xmlFile)));
+            xmlStreamReader = inputFactory.createXMLStreamReader(compressIS, encoding);
         } else {
-            logger.log(Level.INFO, "Trying to open plain text dumb...");
+            logger.log(Level.INFO, "Trying to open Wikipedia plain text dump...");
             xmlStreamReader = inputFactory.createXMLStreamReader(new BufferedInputStream(new FileInputStream(xmlFile)), encoding);
         }
     }
