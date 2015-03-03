@@ -50,7 +50,7 @@ import org.apache.commons.compress.compressors.CompressorException;
 @Deprecated
 public class Wikidump2Index {
 
-    private static final String notValidTitle = "^[A-Za-z\\s_-]+:.*$";
+    private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Z][a-z].*$";
 
     private int minTextLegth = 4000;
 
@@ -58,7 +58,8 @@ public class Wikidump2Index {
 
     private TemporalEventIndexing tee;
 
-    private static final String defaultEncoding = "ISO-8859-1";
+    //private static final String defaultEncoding = "ISO-8859-1";
+    private static final String defaultEncoding = "UTF-8";
 
     public int getMinTextLegth() {
         return minTextLegth;
@@ -73,24 +74,23 @@ public class Wikidump2Index {
         tee.init(lang, mainDir);
     }
 
-    public void build(String xmlDumpFilename, String encoding) throws Exception {
-        build(new File(xmlDumpFilename), encoding);
+    public void build(String xmlDumpFilename, String language, String encoding) throws Exception {
+        build(new File(xmlDumpFilename), language, encoding);
     }
 
-    private void build(File xmlDump, String encoding) throws Exception {
+    private void build(File xmlDump, String language, String encoding) throws Exception {
         try {
             WikipediaDumpIterator wikiIterator = new WikipediaDumpIterator(xmlDump, encoding);
+            PageCleaner cleaner = PageCleanerWrapper.getInstance(language);
             int counter = 0;
             Integer docID = 0;
             while (wikiIterator.hasNext()) {
                 WikiPage wikiPage = wikiIterator.next();
                 ParsedPage parsedPage = wikiPage.getParsedPage();
                 String title = wikiPage.getTitle();
-                byte[] bytes = title.getBytes("ISO-8859-1");
-                title = new String(bytes);
                 if (!title.matches(notValidTitle)) {
                     if (parsedPage != null) {
-                        String text = parsedPage.getText();
+                        String text = cleaner.clean(parsedPage.getText());
                         logger.log(Level.FINE, "Process doc {0}", title);
                         if (text.length() > this.minTextLegth) {
                             try {
@@ -129,9 +129,9 @@ public class Wikidump2Index {
             Wikidump2Index builder = new Wikidump2Index();
             builder.init(args[0], args[2]);
             if (args.length == 3) {
-                builder.build(args[1], defaultEncoding);
+                builder.build(args[1], args[0], defaultEncoding);
             } else if (args.length > 3) {
-                builder.build(args[1], args[3]);
+                builder.build(args[1], args[0], args[3]);
             } else {
                 throw new Exception("No valid arguments");
             }

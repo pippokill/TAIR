@@ -78,8 +78,8 @@ public class TextDirIndex {
         this.numberOfThreads = nt;
     }
 
-    public void build(String xmlDumpFilename) throws Exception {
-        build(new File(xmlDumpFilename));
+    public void build(String xmlDumpFilename, String language) throws Exception {
+        build(new File(xmlDumpFilename), language);
     }
 
     private void processFile(File inFile) throws IOException, InterruptedException {
@@ -102,13 +102,13 @@ public class TextDirIndex {
         }
     }
 
-    private void build(File startDir) throws Exception {
+    private void build(File startDir, String language) throws Exception {
         try {
             Counter.init();
             TxtDoc poisonPage = new TxtDoc("***POISON_PAGE***", "");
             List<Thread> threads = new ArrayList<>();
             for (int i = 0; i < numberOfThreads; i++) {
-                Thread thread = new IndexThread(tee, minTextLegth);
+                Thread thread = new IndexThread(tee, language, minTextLegth);
                 threads.add(thread);
                 thread.start();
             }
@@ -141,7 +141,7 @@ public class TextDirIndex {
             if (args.length == 4) {
                 TextDirIndex builder = new TextDirIndex();
                 builder.init(args[0], args[2], Integer.parseInt(args[3]));
-                builder.build(args[1]);
+                builder.build(args[0], args[1]);
             } else {
                 throw new Exception("No valid arguments");
             }

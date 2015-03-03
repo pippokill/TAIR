@@ -38,36 +38,21 @@ import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
-import javax.xml.stream.XMLStreamException;
-import org.apache.commons.compress.compressors.CompressorException;
 
 /**
  *
  * @author pierpaolo
  */
-public class Wikidump2Text {
+public class Wikidump2TextIT {
 
     //private static String encoding = "ISO-8859-1";
     private static String encoding = "UTF-8";
-
-    //private static final String notValidTitle = "^[A-Za-z\\s_-]+:.*$";
-    private static final String[] prefixItPage = new String[]{"Discussione:", "Utente:", "Discussioni utente:", "Wikipedia:", "Discussioni Wikipedia:",
-        "File:", "Discussioni file:", "MediaWiki:", "Discussioni MediaWiki:", "Template:", "Discussioni template:", "Aiuto:", "Discussioni aiuto:",
-        "Categoria:", "Discussioni categoria:", "Portale:", "Discussioni portale:", "Progetto:", "Discussioni progetto:"};
-
-    private static boolean isSpecialNamespace(String[] prefix, String title) {
-        for (String p : prefix) {
-            if (title.startsWith(p)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    
+    private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Z][a-z].*$";
 
     /**
      * @param args the command line arguments
@@ -81,14 +66,16 @@ public class Wikidump2Text {
                 }
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(args[1])), "UTF-8"));
                 WikipediaDumpIterator it = new WikipediaDumpIterator(new File(args[0]), encoding);
+                PageCleaner cleaner = PageCleanerWrapper.getInstance("italian");
                 while (it.hasNext()) {
                     WikiPage wikiPage = it.next();
                     ParsedPage parsedPage = wikiPage.getParsedPage();
                     if (parsedPage != null) {
                         String title = wikiPage.getTitle();
-                        if (!isSpecialNamespace(prefixItPage, title)) {
+                        if (!title.matches(notValidTitle)) {
                             if (parsedPage.getText() != null) {
-                                writer.append(parsedPage.getText());
+                                writer.append(cleaner.clean(parsedPage.getText()));
+                                writer.newLine();
                                 writer.newLine();
                                 counter++;
                                 if (counter % 10000 == 0) {
@@ -101,11 +88,11 @@ public class Wikidump2Text {
                 }
                 writer.flush();
                 writer.close();
-            } catch (XMLStreamException | CompressorException | IOException ex) {
-                Logger.getLogger(Wikidump2Text.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(Wikidump2TextIT.class.getName()).log(Level.SEVERE, null, ex);
             }
             System.out.println("Indexed pages: " + counter);
         }
     }
-
+    
 }
