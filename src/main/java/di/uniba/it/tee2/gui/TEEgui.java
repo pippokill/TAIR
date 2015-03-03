@@ -34,7 +34,7 @@
  */
 package di.uniba.it.tee2.gui;
 
-import di.uniba.it.tee2.TemporalExtractor;
+import di.uniba.it.tee2.extraction.TemporalExtractor;
 import di.uniba.it.tee2.search.SearchResult;
 import di.uniba.it.tee2.search.TemporalEventSearch;
 import java.io.IOException;

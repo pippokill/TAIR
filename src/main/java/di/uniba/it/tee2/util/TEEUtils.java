@@ -32,7 +32,7 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2;
+package di.uniba.it.tee2.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

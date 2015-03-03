@@ -35,7 +35,7 @@
 package di.uniba.it.tee2.wiki;
 
 import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
-import di.uniba.it.tee2.TemporalEventIndexingTS;
+import di.uniba.it.tee2.index.TemporalEventIndexingTS;
 import di.uniba.it.tee2.util.Counter;
 import java.util.logging.Level;
 import java.util.logging.Logger;

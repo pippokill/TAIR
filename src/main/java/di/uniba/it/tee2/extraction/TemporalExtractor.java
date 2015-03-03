@@ -32,8 +32,9 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2;
+package di.uniba.it.tee2.extraction;
 
+import di.uniba.it.tee2.util.TEEUtils;
 import de.unihd.dbs.heideltime.standalone.DocumentType;
 import de.unihd.dbs.heideltime.standalone.HeidelTimeStandalone;
 import de.unihd.dbs.heideltime.standalone.OutputType;

@@ -5,7 +5,7 @@
  */
 package di.uniba.it.tee2.util;
 
-import di.uniba.it.tee2.TemporalExtractor;
+import di.uniba.it.tee2.extraction.TemporalExtractor;
 import di.uniba.it.tee2.data.TaggedText;
 import di.uniba.it.tee2.data.TimeEvent;
 import java.util.List;

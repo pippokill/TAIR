@@ -34,7 +34,7 @@
  */
 package di.uniba.it.tee2.search;
 
-import di.uniba.it.tee2.TemporalExtractor;
+import di.uniba.it.tee2.extraction.TemporalExtractor;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;

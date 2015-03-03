@@ -34,7 +34,7 @@
  */
 package di.uniba.it.tee2.wiki;
 
-import di.uniba.it.tee2.TemporalEventIndexingTS;
+import di.uniba.it.tee2.index.TemporalEventIndexingTS;
 import di.uniba.it.tee2.util.Counter;
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -35,7 +35,7 @@
 package di.uniba.it.tee2.wiki;
 
 import de.tudarmstadt.ukp.wikipedia.parser.ParsedPage;
-import di.uniba.it.tee2.TemporalEventIndexing;
+import di.uniba.it.tee2.index.TemporalEventIndexing;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.logging.Level;

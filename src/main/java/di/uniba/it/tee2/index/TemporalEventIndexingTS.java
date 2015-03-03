@@ -32,8 +32,9 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-package di.uniba.it.tee2;
+package di.uniba.it.tee2.index;
 
+import di.uniba.it.tee2.extraction.TemporalExtractor;
 import di.uniba.it.tee2.data.TaggedText;
 import di.uniba.it.tee2.data.TimeEvent;
 import java.io.File;
@@ -53,10 +54,10 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
-public class TemporalEventIndexing {
+public class TemporalEventIndexingTS {
 
     private Analyzer analyzer;
-    private TemporalExtractor tempExtractor;
+    //private TemporalExtractor tempExtractor;
     private FSDirectory time_index;
     private FSDirectory doc_index;
     private FSDirectory docrep_index;
@@ -64,7 +65,8 @@ public class TemporalEventIndexing {
     private IndexWriter doc_writer;
     private IndexWriter docrep_writer;
     private int contextSize = 256;
-    private static final Logger logger = Logger.getLogger(TemporalEventIndexing.class.getName());
+    private String lang;
+    private static final Logger logger = Logger.getLogger(TemporalEventIndexingTS.class.getName());
 
     /**
      * @param lang
@@ -73,8 +75,9 @@ public class TemporalEventIndexing {
      *
      */
     public void init(String lang, String mainDir) throws IOException {
-        tempExtractor = new TemporalExtractor(lang);
-        tempExtractor.init();
+        //tempExtractor = new TemporalExtractor(lang);
+        //tempExtractor.init();
+        this.lang = lang;
         time_index = FSDirectory.open(new File(mainDir + "/time"));
         doc_index = FSDirectory.open(new File(mainDir + "/doc"));
         docrep_index = FSDirectory.open(new File(mainDir + "/repo"));
@@ -122,6 +125,8 @@ public class TemporalEventIndexing {
     public void add(String title, String content, String fileName, String docID) throws Exception {
         TaggedText tt = null;
         try {
+            TemporalExtractor tempExtractor = new TemporalExtractor(lang);
+            tempExtractor.init();
             tt = tempExtractor.process(content);
         } catch (Exception ex) {
             logger.log(Level.WARNING, "Error to process doc " + docID + " (skip doc)", ex);
