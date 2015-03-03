@@ -74,7 +74,7 @@ public class TemporalExtractor {
     }
 
     public void init() {
-        heidelTagger = new HeidelTimeStandalone(langObj, DocumentType.NARRATIVES, OutputType.TIMEML, "lib3rd/config.props");
+        heidelTagger = new HeidelTimeStandalone(langObj, DocumentType.NARRATIVES, OutputType.TIMEML, "config.props");
     }
 
     private String escapeXML(String xmlString) throws Exception {

@@ -114,4 +114,11 @@ public class TimeEvent {
         this.dateString = dateString;
     }
 
+    @Override
+    public String toString() {
+        return "TimeEvent{" + "startOffset=" + startOffset + ", endOffset=" + endOffset + ", date=" + date + ", dateString=" + dateString + ", eventString=" + eventString + '}';
+    }
+    
+    
+
 }

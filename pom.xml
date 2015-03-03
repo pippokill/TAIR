@@ -69,7 +69,7 @@
         <dependency>
             <groupId>heideltime</groupId>
             <artifactId>heideltime</artifactId>
-            <version>1.7</version>
+            <version>1.8</version>
         </dependency>
     </dependencies>
     <build>
@@ -83,7 +83,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>di.uniba.it.tee2.wiki.Wikidump2Index</mainClass>
+                            <mainClass>di.uniba.it.tee2.util.TestTemporalExtractor</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
