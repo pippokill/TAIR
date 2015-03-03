@@ -5,6 +5,9 @@
  */
 package di.uniba.it.tee2.util;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author pierpaolo
@@ -19,6 +22,9 @@ public class Counter {
 
     public static synchronized int increment() {
         counter++;
+        if (counter % 1000==0) {
+            Logger.getLogger(Counter.class.getName()).log(Level.INFO, "Requested {0} counts", counter);
+        }
         return counter;
     }
 

@@ -92,7 +92,7 @@ public class Wikidump2Index {
                             try {
                                 tee.add(title, text, title, docID.toString());
                                 docID++;
-                                if (docID % 1000 == 0) {
+                                if (docID % 100 == 0) {
                                     logger.log(Level.INFO, "Indexed pages: {0}", docID);
                                 }
                             } catch (Exception ex) {
