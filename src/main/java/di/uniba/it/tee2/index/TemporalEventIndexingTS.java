@@ -188,16 +188,25 @@ public class TemporalEventIndexingTS {
     public String getTimeContext(String content, int startOffset, int endOffset) {
         int start = Math.max(0, startOffset - contextSize);
         int end = Math.min(content.length(), endOffset + contextSize);
-        String context = content.substring(start, end);
-        int index = context.indexOf(" ");
-        if (index >= 0 && index < context.length()) {
-            context = context.substring(index + 1);
+        while (start > 0 && !Character.isWhitespace(content.charAt(start))) {
+            start--;
         }
-        index = context.lastIndexOf(" ");
-        if (index >= 0 && index < context.length()) {
-            context = context.substring(0, index);
+        while (end < content.length() && !Character.isWhitespace(content.charAt(end))) {
+            end++;
         }
-        return context;
+        return content.substring(start, end);
+    }
+    
+    public static String getTimeContext(String content, int startOffset, int endOffset,int contextSize) {
+        int start = Math.max(0, startOffset - contextSize);
+        int end = Math.min(content.length(), endOffset + contextSize);
+        while (start > 0 && !Character.isWhitespace(content.charAt(start))) {
+            start--;
+        }
+        while (end < content.length() && !Character.isWhitespace(content.charAt(end))) {
+            end++;
+        }
+        return content.substring(start, end);
     }
 
 }
