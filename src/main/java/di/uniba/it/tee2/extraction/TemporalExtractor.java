@@ -42,7 +42,6 @@ import de.unihd.dbs.uima.annotator.heideltime.resources.Language;
 import di.uniba.it.tee2.data.TaggedText;
 import di.uniba.it.tee2.data.TimeEvent;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -50,11 +49,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -108,7 +102,7 @@ public class TemporalExtractor {
                     try {
                         normalizedTime = TEEUtils.normalizeTime(timeValueString);
                     } catch (Exception ex) {
-                        logger.log(Level.WARNING, "Error to normalize time: ", ex);
+                        //logger.log(Level.WARNING, "Error to normalize time: ", ex);
                     }
                     if (normalizedTime!=null) {
                         TimeEvent event=new TimeEvent(sb.length(), sb.length()+timeText.length(), normalizedTime);
