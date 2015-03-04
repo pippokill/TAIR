@@ -55,6 +55,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
@@ -81,81 +82,47 @@ public class TemporalExtractor {
     public String getLanguage() {
         return langObj.getName();
     }
-    
-    
-
-    private String escapeXML(String xmlString) throws Exception {
-        int startIndex = xmlString.indexOf("<TimeML>");
-        int endIndex = xmlString.indexOf("</TimeML>");
-        if (startIndex >= 0 && endIndex >= 0) {
-            String content = xmlString.substring(startIndex + 8, endIndex);
-            StringBuilder newContent = new StringBuilder();
-            int index = content.indexOf("<TIMEX3");
-            int preIndex = 0;
-            while (index >= 0) {
-                int endTagIndex = content.indexOf("</TIMEX3>", index + 1);
-                if (endTagIndex >= 0) {
-                    //escape and append left string
-                    newContent.append(StringEscapeUtils.escapeXml11(content.substring(preIndex, index)));
-                    //append time3 tag section without escape
-                    newContent.append(content.substring(index, endTagIndex + 9));
-                    preIndex = endTagIndex + 9 + 1;
-                    index = content.indexOf("<TIMEX3", index + 1);
-                } else {
-                    throw new Exception("No end tag for TIMEX3");
-                }
-            }
-            newContent.append(content.substring(preIndex));
-            StringBuilder sb = new StringBuilder(xmlString);
-            return sb.replace(startIndex + 8, endIndex, newContent.toString()).toString();
-        } else {
-            throw new Exception("No valid TimeML doc");
-        }
-    }
 
     public TaggedText process(String text) throws Exception {
         Date currentTime = Calendar.getInstance(TimeZone.getDefault()).getTime();
         TaggedText taggedText = new TaggedText();
-        String timemlOutput = heidelTagger.process(text, currentTime);
-        byte[] bytes = text.getBytes("ISO-8859-1");
-        text=new String(bytes,"UTF-8");
         taggedText.setText(text);
-        timemlOutput = new String(timemlOutput.getBytes("ISO-8859-1"));
-        timemlOutput = escapeXML(timemlOutput);
+        String timemlOutput = heidelTagger.process(text, currentTime);
         taggedText.setTaggedText(timemlOutput);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         org.w3c.dom.Document doc = builder.parse(new InputSource(new StringReader(timemlOutput)));
 
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(new StringWriter());
-        transformer.transform(source, result);
-
-        //get all TIMEX3 tags in the document
-        NodeList nodes = doc.getElementsByTagName("TIMEX3");
-
-        Integer ind = 0, offset_start = 0, offset_end = 0;
-        for (int i = 0; i < nodes.getLength(); i++) { //for each tag timex3
-            if (("DATE").equals(nodes.item(i).getAttributes().getNamedItem("type").getNodeValue()) && nodes.item(i).getAttributes().getNamedItem("value") != null) {
-                String normalizedTime = null;
-                String timeValueString = nodes.item(i).getAttributes().getNamedItem("value").getNodeValue();
-                try {
-                    normalizedTime = TEEUtils.normalizeTime(timeValueString);
-                } catch (Exception ex) {
-                    logger.log(Level.WARNING, "Error to normalize time: ", ex);
+        StringBuilder sb = new StringBuilder();
+        NodeList timemlNodes = doc.getElementsByTagName("TimeML");
+        for (int i = 0; i < timemlNodes.getLength(); i++) {
+            NodeList childs = timemlNodes.item(i).getChildNodes();
+            for (int j = 0; j < childs.getLength(); j++) {
+                Node child = childs.item(j);
+                if (child.getNodeType() == Node.TEXT_NODE) {
+                    sb.append(child.getTextContent());
+                } else if (child.getNodeName().equals("TIMEX3")) {
+                    String timeText=child.getTextContent();
+                    String timeValueString = child.getAttributes().getNamedItem("value").getNodeValue();
+                    String normalizedTime=null;
+                    try {
+                        normalizedTime = TEEUtils.normalizeTime(timeValueString);
+                    } catch (Exception ex) {
+                        logger.log(Level.WARNING, "Error to normalize time: ", ex);
+                    }
+                    if (normalizedTime!=null) {
+                        TimeEvent event=new TimeEvent(sb.length(), sb.length()+timeText.length(), normalizedTime);
+                        event.setEventString(timeText);
+                        taggedText.getEvents().add(event);
+                    }
+                    sb.append(timeText);
                 }
-                if (normalizedTime != null) {
-                    offset_start = (text.indexOf(nodes.item(i).getTextContent(), ind) + 1);
-                    offset_end = (text.indexOf(nodes.item(i).getTextContent(), ind) + nodes.item(i).getTextContent().length());
-                    ind = text.indexOf(nodes.item(i).getTextContent(), ind) + nodes.item(i).getTextContent().length() + 1;
-                    String normalizeTime = TEEUtils.normalizeTime(nodes.item(i).getAttributes().getNamedItem("value").getNodeValue());
-                    TimeEvent event = new TimeEvent(offset_start, offset_end, normalizeTime);
-                    event.setEventString(nodes.item(i).getTextContent());
-                    taggedText.getEvents().add(event);
-                }
+                //VERBOSE
+                //System.out.println(child.getNodeType() + "\t" + child.getNodeName() + "\t" + child.getTextContent());
+                //System.out.println();
             }
         }
+        taggedText.setText(sb.toString());
         return taggedText;
     }
 
