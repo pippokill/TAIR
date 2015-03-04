@@ -49,6 +49,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -80,6 +82,7 @@ public class TemporalExtractor {
     public TaggedText process(String text) throws Exception {
         Date currentTime = Calendar.getInstance(TimeZone.getDefault()).getTime();
         TaggedText taggedText = new TaggedText();
+        text = StringEscapeUtils.escapeXml11(text);
         taggedText.setText(text);
         String timemlOutput = heidelTagger.process(text, currentTime);
         taggedText.setTaggedText(timemlOutput);
@@ -96,16 +99,16 @@ public class TemporalExtractor {
                 if (child.getNodeType() == Node.TEXT_NODE) {
                     sb.append(child.getTextContent());
                 } else if (child.getNodeName().equals("TIMEX3")) {
-                    String timeText=child.getTextContent();
+                    String timeText = child.getTextContent();
                     String timeValueString = child.getAttributes().getNamedItem("value").getNodeValue();
-                    String normalizedTime=null;
+                    String normalizedTime = null;
                     try {
                         normalizedTime = TEEUtils.normalizeTime(timeValueString);
                     } catch (Exception ex) {
                         //logger.log(Level.WARNING, "Error to normalize time: ", ex);
                     }
-                    if (normalizedTime!=null) {
-                        TimeEvent event=new TimeEvent(sb.length(), sb.length()+timeText.length(), normalizedTime);
+                    if (normalizedTime != null) {
+                        TimeEvent event = new TimeEvent(sb.length(), sb.length() + timeText.length(), normalizedTime);
                         event.setEventString(timeText);
                         taggedText.getEvents().add(event);
                     }
