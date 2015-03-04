@@ -52,7 +52,6 @@ import org.apache.commons.compress.compressors.CompressorException;
  *
  * @author pierpaolo
  */
-@Deprecated
 public class Wikidump2Index {
 
     private static final String notValidTitle = "^[A-Za-z\\s_-]+:[A-Za-z].*$";
@@ -64,6 +63,8 @@ public class Wikidump2Index {
     private TemporalEventIndexing tee;
 
     private static String encoding = "UTF-8";
+
+    private static int pageLimit = Integer.MAX_VALUE;
 
     public void init(String lang, String mainDir) throws Exception {
         tee = new TemporalEventIndexing();
@@ -80,7 +81,7 @@ public class Wikidump2Index {
             PageCleaner cleaner = PageCleanerWrapper.getInstance(language);
             int counter = 0;
             Integer docID = 0;
-            while (wikiIterator.hasNext()) {
+            while (wikiIterator.hasNext() && docID < pageLimit) {
                 WikiPage wikiPage = wikiIterator.next();
                 ParsedPage parsedPage = wikiPage.getParsedPage();
                 String title = wikiPage.getTitle();
@@ -125,7 +126,8 @@ public class Wikidump2Index {
                 .addOption("d", true, "wikiepdia dump file")
                 .addOption("o", true, "output index directory")
                 .addOption("m", true, "min text length (optional, default 4000 characters)")
-                .addOption("e", true, "charset encoding (optional, default UTF-8)");
+                .addOption("e", true, "charset encoding (optional, default UTF-8)")
+                .addOption("p", true, "limit indexed pages (optional, default no limit)");
     }
 
     /**
@@ -138,7 +140,10 @@ public class Wikidump2Index {
             CommandLine cmd = cmdParser.parse(options, args);
             if (cmd.hasOption("l") && cmd.hasOption("d") && cmd.hasOption("o")) {
                 encoding = cmd.getOptionValue("e", "UTF-8");
-                minTextLegth=Integer.parseInt(cmd.getOptionValue("m","4000"));
+                minTextLegth = Integer.parseInt(cmd.getOptionValue("m", "4000"));
+                if (cmd.hasOption("p")) {
+                    pageLimit = Integer.parseInt(cmd.getOptionValue("p"));
+                }
                 Wikidump2Index builder = new Wikidump2Index();
                 builder.init(cmd.getOptionValue("l"), cmd.getOptionValue("o"));
                 builder.build(cmd.getOptionValue("d"), cmd.getOptionValue("l"));

@@ -39,26 +39,51 @@ package di.uniba.it.tee2.wiki;
  * @author pierpaolo
  */
 public class EnglishPageCleaner implements PageCleaner {
-
+  
     @Override
     public String clean(String text) throws Exception {
-        StringBuilder sb=new StringBuilder();
-        String[] split = text.split("\n");
-        for (String line:split) {
-            if (!(line.toLowerCase().startsWith("note") ||
-                    line.toLowerCase().startsWith("see also") ||
-                    line.toLowerCase().startsWith("external links") ||
-                    line.toLowerCase().startsWith("further reading") ||
-                    line.toLowerCase().startsWith("bibliografy") ||
-                    line.toLowerCase().startsWith("references"))) {
-                sb.append(line).append("\n");
-            } else {
-                break;
-            }
+        int min = Integer.MAX_VALUE;
+        boolean cut=false;
+        int index=text.indexOf("See also");
+        if (index>=0 && index<min) {
+            min=index;
+            cut=true;
         }
-        return sb.toString();
+        index = text.indexOf("Note");
+        if (index>=0 && index<min) {
+            min=index;
+            cut=true;
+        }
+        index = text.indexOf("Notes");
+        if (index>=0 && index<min) {
+            min=index;
+            cut=true;
+        }
+        index = text.indexOf("External links");
+        if (index>=0 && index<min) {
+            min=index;
+            cut=true;
+        }
+        index = text.indexOf("Further reading");
+        if (index>=0 && index<min) {
+            min=index;
+            cut=true;
+        }
+        index = text.indexOf("Bibliografy");
+        if (index>=0 && index<min) {
+            min=index;
+            cut=true;
+        }
+        index = text.indexOf("References");
+        if (index>=0 && index<min) {
+            min=index;
+            cut=true;
+        }
+        if (cut) {
+            return text.substring(0, min);
+        } else {
+            return text;
+        }
     }
-    
-    
     
 }
