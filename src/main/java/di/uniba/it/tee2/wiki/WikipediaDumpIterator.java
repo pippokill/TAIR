@@ -32,7 +32,6 @@
  * GNU GENERAL PUBLIC LICENSE - Version 3, 29 June 2007
  *
  */
-
 package di.uniba.it.tee2.wiki;
 
 import de.tudarmstadt.ukp.wikipedia.api.WikiConstants;
@@ -113,7 +112,10 @@ public class WikipediaDumpIterator implements Iterator<WikiPage> {
         try {
             StringBuilder wikimediaText = new StringBuilder();
             StringBuilder title = new StringBuilder();
+            int wikiID = -1;
+            int revisionID = -1;
             boolean finishedParsingArticle = false;
+            boolean inrevision = false;
             char lastElement = 'n';
             while (!finishedParsingArticle && xmlStreamReader.hasNext()) {
                 int eventCode = xmlStreamReader.next();
@@ -125,6 +127,12 @@ public class WikipediaDumpIterator implements Iterator<WikiPage> {
                                 break;
                             case "text":
                                 lastElement = 'c';
+                                break;
+                            case "revision":
+                                inrevision = true;
+                                break;
+                            case "id":
+                                lastElement = 'd';
                                 break;
                         }
                         break;
@@ -139,6 +147,12 @@ public class WikipediaDumpIterator implements Iterator<WikiPage> {
                             case "text":
                                 lastElement = 'n';
                                 break;
+                            case "id":
+                                lastElement = 'n';
+                                break;
+                            case "revision":
+                                inrevision = false;
+                                break;
                         }
                         break;
                     case XMLStreamConstants.CHARACTERS:
@@ -146,11 +160,19 @@ public class WikipediaDumpIterator implements Iterator<WikiPage> {
                             title.append(xmlStreamReader.getText());
                         } else if (lastElement == 'c') {
                             wikimediaText.append(xmlStreamReader.getText());
+                        } else if (lastElement == 'd') {
+                            if (inrevision && revisionID == -1) {
+                                revisionID = Integer.parseInt(xmlStreamReader.getText());
+                            } else if (wikiID == -1) {
+                                wikiID = Integer.parseInt(xmlStreamReader.getText());
+                            }
                         }
                         break;
                 }
             }
 
+            page.setWikiID(wikiID);
+            page.setRevisionID(revisionID);
             page.setTitle(title.toString());
             try {
                 ParsedPage parsedPage = parser.parse(wikimediaText.toString());

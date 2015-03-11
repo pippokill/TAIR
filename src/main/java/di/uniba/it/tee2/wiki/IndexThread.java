@@ -76,7 +76,7 @@ public class IndexThread extends Thread {
                             if (text.length() > this.minTextLegth) {
 
                                 int docid = Counter.increment();
-                                tee.add(wikiPage.getTitle(), text, wikiPage.getTitle(), String.valueOf(docid));
+                                tee.add(wikiPage.getTitle(), text, wikiPage.getTitle(), String.valueOf(docid), wikiPage.getWikiID(), wikiPage.getRevisionID());
                             }
                         } catch (Exception ex) {
                             logger.log(Level.SEVERE, "Error to index page (skip page) " + wikiPage.getTitle(), ex);

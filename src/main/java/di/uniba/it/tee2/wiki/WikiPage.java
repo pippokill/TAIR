@@ -48,6 +48,10 @@ public class WikiPage {
     private String text;
     
     private ParsedPage parsedPage;
+    
+    private int wikiID;
+    
+    private int revisionID;
 
     public ParsedPage getParsedPage() {
         return parsedPage;
@@ -76,8 +80,20 @@ public class WikiPage {
     public WikiPage() {
     }
 
-    
-    
-    
+    public int getWikiID() {
+        return wikiID;
+    }
+
+    public void setWikiID(int wikiID) {
+        this.wikiID = wikiID;
+    }
+
+    public int getRevisionID() {
+        return revisionID;
+    }
+
+    public void setRevisionID(int revisionID) {
+        this.revisionID = revisionID;
+    }
     
 }

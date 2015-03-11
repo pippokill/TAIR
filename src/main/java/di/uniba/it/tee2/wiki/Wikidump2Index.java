@@ -91,7 +91,7 @@ public class Wikidump2Index {
                         logger.log(Level.FINE, "Process doc {0}", title);
                         if (text.length() > this.minTextLegth) {
                             try {
-                                tee.add(title, text, title, docID.toString());
+                                tee.add(title, text, title, docID.toString(), wikiPage.getWikiID(), wikiPage.getRevisionID());
                                 docID++;
                                 if (docID % 100 == 0) {
                                     logger.log(Level.INFO, "Indexed pages: {0}", docID);

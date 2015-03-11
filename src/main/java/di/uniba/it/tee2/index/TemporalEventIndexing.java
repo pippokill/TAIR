@@ -131,8 +131,11 @@ public class TemporalEventIndexing {
      * @param content
      * @param fileName
      * @param docID
+     * @param wikiID
+     * @param revisionID
+     * @throws java.lang.Exception
      */
-    public void add(String title, String content, String fileName, String docID) throws Exception {
+    public void add(String title, String content, String fileName, String docID, int wikiID, int revisionID) throws Exception {
         TaggedText tt = null;
         try {
             tt = tempExtractor.process(content);
@@ -144,6 +147,8 @@ public class TemporalEventIndexing {
             //stores id and text (not tagged) in docrep_index (document repository)
             Document docrep_doc = new Document();
             docrep_doc.add(new StringField("id", docID, Field.Store.YES));
+            docrep_doc.add(new IntField("wikiID", wikiID, Field.Store.YES));
+            docrep_doc.add(new IntField("revisionID", revisionID, Field.Store.YES));
             docrep_doc.add(new StringField("title", title, Field.Store.YES));
             docrep_doc.add(new StoredField("content", tt.getText()));
             docrep_doc.add(new StringField("filename", fileName, Field.Store.YES));
@@ -152,6 +157,8 @@ public class TemporalEventIndexing {
             //stores id and text (not tagged) in doc_index for search
             Document doc_doc = new Document();
             doc_doc.add(new StringField("id", docID, Field.Store.YES));
+            doc_doc.add(new IntField("wikiID", wikiID, Field.Store.YES));
+            doc_doc.add(new IntField("revisionID", revisionID, Field.Store.YES));
             doc_doc.add(new TextField("title", title, Field.Store.NO));
             doc_doc.add(new TextField("content", tt.getText(), Field.Store.NO));
             doc_writer.addDocument(doc_doc);
