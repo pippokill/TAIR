@@ -38,6 +38,7 @@ import di.uniba.it.tee2.index.TemporalEventIndexingTS;
 import di.uniba.it.tee2.util.Counter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -64,15 +65,14 @@ public class Wikidump2IndexMT {
 
     private static final Logger logger = Logger.getLogger(Wikidump2IndexMT.class.getName());
 
-    private TemporalEventIndexingTS tee;
+    private static TemporalEventIndexingTS tee;
 
     //public static final String defaultEncoding = "ISO-8859-1";
     private static String encoding = "UTF-8";
 
     private int numberOfThreads = 4;
 
-    private static int pageLimit = Integer.MAX_VALUE;
-
+    //private static int pageLimit = Integer.MAX_VALUE;
     public static BlockingQueue<WikiPage> pages = new ArrayBlockingQueue<>(1000);
 
     public void init(String lang, String mainDir, int nt) throws Exception {
@@ -98,7 +98,7 @@ public class Wikidump2IndexMT {
                 thread.start();
             }
             int counter = 0;
-            while (wikiIterator.hasNext() && pages.size() < pageLimit) {
+            while (wikiIterator.hasNext() /*&& pages.size() < pageLimit*/) {
                 try {
                     WikiPage wikiPage = wikiIterator.next();
                     String title = wikiPage.getTitle();
@@ -142,8 +142,8 @@ public class Wikidump2IndexMT {
                 .addOption("o", true, "output index directory")
                 .addOption("m", true, "min text length (optional, default 4000 characters)")
                 .addOption("n", true, "number of threads (optional, default 2)")
-                .addOption("e", true, "charset encoding (optional, default UTF-8)")
-                .addOption("p", true, "limit indexed pages (optional, default no limit)");
+                .addOption("e", true, "charset encoding (optional, default UTF-8)");
+        //.addOption("p", true, "limit indexed pages (optional, default no limit)");
     }
 
     /**
@@ -157,12 +157,24 @@ public class Wikidump2IndexMT {
             if (cmd.hasOption("l") && cmd.hasOption("d") && cmd.hasOption("o")) {
                 encoding = cmd.getOptionValue("e", "UTF-8");
                 minTextLegth = Integer.parseInt(cmd.getOptionValue("m", "4000"));
-                if (cmd.hasOption("p")) {
-                    pageLimit = Integer.parseInt(cmd.getOptionValue("p"));
-                }
+                /*if (cmd.hasOption("p")) {
+                 pageLimit = Integer.parseInt(cmd.getOptionValue("p"));
+                 }*/
                 int nt = Integer.parseInt(cmd.getOptionValue("n", "2"));
                 Wikidump2IndexMT builder = new Wikidump2IndexMT();
                 builder.init(cmd.getOptionValue("l"), cmd.getOptionValue("o"), nt);
+                //attach a shutdown hook
+                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            Wikidump2IndexMT.tee.close();
+                        } catch (Exception ex) {
+                            Logger.getLogger(Wikidump2IndexMT.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }));
                 builder.build(cmd.getOptionValue("d"), cmd.getOptionValue("l"));
             } else {
                 HelpFormatter helpFormatter = new HelpFormatter();

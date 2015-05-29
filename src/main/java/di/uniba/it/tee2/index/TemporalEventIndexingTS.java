@@ -54,6 +54,7 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.util.Version;
 
 public class TemporalEventIndexingTS {
@@ -200,6 +201,12 @@ public class TemporalEventIndexingTS {
             end++;
         }
         return content.substring(start, end);
+    }
+    
+    public void commit() throws IOException {
+        time_writer.commit();
+        doc_writer.commit();
+        docrep_writer.commit();
     }
     
     public static String getTimeContext(String content, int startOffset, int endOffset,int contextSize) {

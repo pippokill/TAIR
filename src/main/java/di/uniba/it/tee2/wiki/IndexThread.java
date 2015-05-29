@@ -76,6 +76,9 @@ public class IndexThread extends Thread {
                             if (text.length() > this.minTextLegth) {
 
                                 int docid = Counter.increment();
+                                if (docid % 1000 == 0) {
+                                    tee.commit();
+                                }
                                 tee.add(wikiPage.getTitle(), text, wikiPage.getTitle(), String.valueOf(docid), wikiPage.getWikiID(), wikiPage.getRevisionID());
                             }
                         } catch (Exception ex) {
