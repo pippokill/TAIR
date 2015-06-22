@@ -152,7 +152,7 @@ public class TemporalEventSearch {
             timeConstraint = timeParser.parse(timeQueryString);
         }
 
-        BooleanQuery idQuery = new BooleanQuery();
+        //BooleanQuery idQuery = new BooleanQuery();
         BooleanQuery docQuery = new BooleanQuery();
         if (titleQuery != null) {
             docQuery.add(titleQuery, BooleanClause.Occur.SHOULD);
@@ -166,8 +166,8 @@ public class TemporalEventSearch {
             TopDocs topDocs = doc_searcher.search(contentQuery, 1000);
             for (ScoreDoc sd : topDocs.scoreDocs) {
                 String docid = doc_searcher.doc(sd.doc).get("id");
-                docScoreMap.put(docid, sd.score);
-                idQuery.add(new TermQuery(new Term("id", docid)), BooleanClause.Occur.SHOULD);
+                docScoreMap.put(docid, sd.score + 1);
+                //idQuery.add(new TermQuery(new Term("id", docid)), BooleanClause.Occur.SHOULD);
             }
         }
 
@@ -176,11 +176,11 @@ public class TemporalEventSearch {
             timeQuery.add(timeConstraint, BooleanClause.Occur.MUST);
         }
         if (contextQuery != null) {
-            timeQuery.add(contextQuery, BooleanClause.Occur.SHOULD);
+            timeQuery.add(contextQuery, BooleanClause.Occur.MUST);
         }
-        if (timeConstraint != null || contextQuery != null) {
-            timeQuery.add(idQuery, BooleanClause.Occur.MUST);
-        }
+        /*if (timeConstraint != null || contextQuery != null) {
+         timeQuery.add(idQuery, BooleanClause.Occur.MUST);
+         }*/
         Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Time query: {0}", timeQuery.toString());
         TopDocs timeDocs = time_searcher.search(timeQuery, 1000);
         List<SearchResult> results = new ArrayList<>();
@@ -189,19 +189,19 @@ public class TemporalEventSearch {
             String docId = timedoc.get("id");
             Document document = getDocument(docId);
             if (document != null && document.get("content") != null) {
-                String snip = createSnippet(document.get("content"), Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
                 SearchResult sr = new SearchResult(sd.doc, docId);
+                sr.setStartOffset(timedoc.getField("offset_start").numericValue().intValue());
+                sr.setEndOffset(timedoc.getField("offset_end").numericValue().intValue());
+                String snip = createSnippet(document.get("content"), sr.getStartOffset(), sr.getEndOffset());
                 sr.setSnip(snip);
                 sr.setTitle(document.get("title"));
-                if (query.length() == 0) {
-                    sr.setScore(sd.score);
+                Float score = docScoreMap.get(docId);
+                if (score != null) {
+                    sr.setScore(sd.score * score);
                     results.add(sr);
                 } else {
-                    Float score = docScoreMap.get(docId);
-                    if (score != null) {
-                        sr.setScore(sd.score * score);
-                        results.add(sr);
-                    }
+                    sr.setScore(sd.score);
+                    results.add(sr);
                 }
             } else {
                 logger.log(Level.WARNING, "No text for doc: {0}", docId);
@@ -234,7 +234,7 @@ public class TemporalEventSearch {
             timeConstraint = timeParser.parse(timeRange);
         }
 
-        BooleanQuery idQuery = new BooleanQuery();
+        //BooleanQuery idQuery = new BooleanQuery();
         BooleanQuery docQuery = new BooleanQuery();
         if (titleQuery != null) {
             docQuery.add(titleQuery, BooleanClause.Occur.SHOULD);
@@ -248,8 +248,8 @@ public class TemporalEventSearch {
             TopDocs topDocs = doc_searcher.search(contentQuery, 1000);
             for (ScoreDoc sd : topDocs.scoreDocs) {
                 String docid = doc_searcher.doc(sd.doc).get("id");
-                docScoreMap.put(docid, sd.score);
-                idQuery.add(new TermQuery(new Term("id", docid)), BooleanClause.Occur.SHOULD);
+                docScoreMap.put(docid, sd.score + 1);
+                //idQuery.add(new TermQuery(new Term("id", docid)), BooleanClause.Occur.SHOULD);
             }
         }
 
@@ -258,11 +258,11 @@ public class TemporalEventSearch {
             timeQuery.add(timeConstraint, BooleanClause.Occur.MUST);
         }
         if (contextQuery != null) {
-            timeQuery.add(contextQuery, BooleanClause.Occur.SHOULD);
+            timeQuery.add(contextQuery, BooleanClause.Occur.MUST);
         }
-        if (timeConstraint != null || contextQuery != null) {
-            timeQuery.add(idQuery, BooleanClause.Occur.MUST);
-        }
+        /*if (timeConstraint != null || contextQuery != null) {
+         timeQuery.add(idQuery, BooleanClause.Occur.MUST);
+         }*/
         Logger.getLogger(TemporalEventSearch.class.getName()).log(Level.INFO, "Time query: {0}", timeQuery.toString());
         TopDocs timeDocs = time_searcher.search(timeQuery, 1000);
         List<SearchResult> results = new ArrayList<>();
@@ -271,19 +271,19 @@ public class TemporalEventSearch {
             String docId = timedoc.get("id");
             Document document = getDocument(docId);
             if (document != null && document.get("content") != null) {
-                String snip = createSnippet(document.get("content"), Integer.parseInt(timedoc.get("offset_start")), Integer.parseInt(timedoc.get("offset_end")));
                 SearchResult sr = new SearchResult(sd.doc, docId);
+                sr.setStartOffset(timedoc.getField("offset_start").numericValue().intValue());
+                sr.setEndOffset(timedoc.getField("offset_end").numericValue().intValue());
+                String snip = createSnippet(document.get("content"), sr.getStartOffset(), sr.getEndOffset());
                 sr.setSnip(snip);
                 sr.setTitle(document.get("title"));
-                if (query.length() == 0) {
-                    sr.setScore(sd.score);
+                Float score = docScoreMap.get(docId);
+                if (score != null) {
+                    sr.setScore(sd.score * score);
                     results.add(sr);
                 } else {
-                    Float score = docScoreMap.get(docId);
-                    if (score != null) {
-                        sr.setScore(sd.score * score);
-                        results.add(sr);
-                    }
+                    sr.setScore(sd.score);
+                    results.add(sr);
                 }
             } else {
                 logger.log(Level.WARNING, "No text for doc: {0}", docId);

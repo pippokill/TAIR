@@ -152,7 +152,6 @@ public class TemporalEventIndexingTS {
             docrep_doc.add(new IntField("wikiID", wikiID, Field.Store.YES));
             docrep_doc.add(new IntField("revisionID", revisionID, Field.Store.YES));
             docrep_doc.add(new StringField("title", title, Field.Store.YES));
-            docrep_doc.add(new StringField("title", title, Field.Store.YES));
             docrep_doc.add(new StoredField("content", tt.getText()));
             docrep_doc.add(new StringField("filename", fileName, Field.Store.YES));
             docrep_writer.addDocument(docrep_doc);

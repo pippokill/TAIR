@@ -34,6 +34,7 @@
  */
 package di.uniba.it.tee2.gui;
 
+import di.uniba.it.tee2.search.SearchResult;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -51,11 +52,10 @@ public class DocDialog extends javax.swing.JDialog {
     /**
      * Creates new form DocDialog
      */
-    public DocDialog(java.awt.Frame parent, boolean modal, String docId, String snip) {
+    public DocDialog(java.awt.Frame parent, boolean modal, SearchResult sr) {
         super(parent, modal);
         initComponents();
-        this.setTitle("DOC VIEW - "+docId);
-        initMy(docId, snip);
+        initMy(sr);
     }
 
     /**
@@ -101,17 +101,23 @@ public class DocDialog extends javax.swing.JDialog {
     private javax.swing.JTextPane jTextPane1;
     // End of variables declaration//GEN-END:variables
 
-    private void initMy(String docId, String snip) {
+    private void initMy(SearchResult sr) {
+        this.setTitle(sr.getTitle());
         try {
-            String text = TEEgui.search.getDocumentText(docId);
-            int indexOf = text.indexOf(snip);
+            String text = TEEgui.search.getDocumentText(sr.getId());
+            int indexOf = text.indexOf(sr.getSnip());
             jTextPane1.setText(text);
 
             if (indexOf > -1) {
                 StyledDocument sdoc = jTextPane1.getStyledDocument();
                 SimpleAttributeSet aset = new SimpleAttributeSet();
                 StyleConstants.setBackground(aset, Color.yellow);
-                sdoc.setCharacterAttributes(indexOf, snip.length(), aset, false);
+                sdoc.setCharacterAttributes(indexOf, sr.getSnip().length(), aset, false);
+
+                SimpleAttributeSet tset = new SimpleAttributeSet();
+                StyleConstants.setBackground(tset, Color.GREEN);
+                StyleConstants.setBold(tset, true);
+                sdoc.setCharacterAttributes(sr.getStartOffset(), sr.getEndOffset()-sr.getStartOffset(), tset, false);
             }
         } catch (IOException ex) {
             Logger.getLogger(DocDialog.class.getName()).log(Level.SEVERE, null, ex);

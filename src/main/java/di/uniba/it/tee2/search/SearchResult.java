@@ -49,8 +49,12 @@ public class SearchResult implements Comparable<SearchResult> {
     private float score;
 
     private String snip;
-    
+
     private String title;
+
+    private int startOffset;
+
+    private int endOffset;
 
     public SearchResult(int indexId, String id) {
         this.indexId = indexId;
@@ -79,6 +83,22 @@ public class SearchResult implements Comparable<SearchResult> {
 
     public void setSnip(String snip) {
         this.snip = snip;
+    }
+
+    public int getStartOffset() {
+        return startOffset;
+    }
+
+    public int getEndOffset() {
+        return endOffset;
+    }
+
+    public void setStartOffset(int startOffset) {
+        this.startOffset = startOffset;
+    }
+
+    public void setEndOffset(int endOffset) {
+        this.endOffset = endOffset;
     }
     
     
@@ -120,7 +140,7 @@ public class SearchResult implements Comparable<SearchResult> {
 
     @Override
     public String toString() {
-        return "SearchResult{" + "indexId=" + indexId + ", id=" + id + ", score=" + score + ", snip=" + snip + ", title=" + title + '}';
+        return id + " - " + title + "-" + score + "\n[" + startOffset + " - " + endOffset + "] " + snip;
     }
 
     public String getTitle() {
@@ -130,7 +150,5 @@ public class SearchResult implements Comparable<SearchResult> {
     public void setTitle(String title) {
         this.title = title;
     }
-    
-    
 
 }
