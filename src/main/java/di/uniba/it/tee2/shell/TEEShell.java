@@ -162,7 +162,7 @@ public class TEEShell {
     private void showHelp() {
         println("Commands are case insensitive");
         println("help or ?      Display this help");
-        println("history        Show the last 20 statements");
+        println("history        Show the last " + HISTORY_COUNT + " statements");
         println("quit or exit   Close and exit");
         println("");
     }
@@ -170,7 +170,7 @@ public class TEEShell {
     private void promptLoop() {
         println("");
         println("Welcome to TEE2 Shell " + VERSION);
-        println("Exit with !quit or !exit");
+        println("Exit with quit or exit");
 
         if (reader == null) {
             try {
@@ -190,11 +190,11 @@ public class TEEShell {
                 if (cmd.length() == 0) {
                     continue;
                 }
-                if ("!exit".equalsIgnoreCase(cmd) || "!quit".equalsIgnoreCase(cmd)) {
+                if (cmd.matches("(^(exit|quit)$)|(^(exit|quit)\\s+.*$)")) {
                     break;
-                } else if (cmd.toLowerCase().equalsIgnoreCase("!help") || cmd.equalsIgnoreCase("!?")) {
+                } else if (cmd.matches("(^(help|\\?)$)|(^(help|\\?)\\s+.*$)")) {
                     showHelp();
-                } else if ("!history".equals(cmd.toLowerCase())) {
+                } else if ("history".equals(cmd.toLowerCase())) {
                     for (int i = 0, size = history.size(); i < size; i++) {
                         String s = history.get(i);
                         s = s.replace('\n', ' ').replace('\r', ' ');
@@ -205,7 +205,7 @@ public class TEEShell {
                     } else {
                         println("No history");
                     }
-                } else if (cmd.toLowerCase().startsWith("!runh")) {
+                } else if (cmd.matches("(^runh$)|(^runh\\s+.*$)")) {
                     String[] split = cmd.split("\\s+");
                     if (split.length > 1) {
                         if (split[1].matches("[0-9]+")) {
@@ -222,8 +222,14 @@ public class TEEShell {
                     } else {
                         printMessageError("runh syntax error");
                     }
+                } else if (cmd.matches("(^search$)|(^search\\s+.*$)")) {
+                    if (history.size() == HISTORY_COUNT) {
+                        history.remove(0);
+                    }
+                    history.add(cmd);
+                    executeSearch(cmd.substring(6));
                 } else {
-                    executeSearch(cmd);
+                    printMessageError("Command not valid: " + cmd);
                 }
             } catch (Exception ex) {
                 println("No managed exception sorry...");
@@ -257,10 +263,6 @@ public class TEEShell {
         } catch (Exception ex) {
             printException(ex);
         }
-        if (history.size() == HISTORY_COUNT) {
-            history.remove(0);
-        }
-        history.add(cmd);
     }
 
     /**

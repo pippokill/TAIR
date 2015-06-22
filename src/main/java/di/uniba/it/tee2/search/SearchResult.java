@@ -35,6 +35,7 @@
 package di.uniba.it.tee2.search;
 
 import java.util.Objects;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -100,8 +101,6 @@ public class SearchResult implements Comparable<SearchResult> {
     public void setEndOffset(int endOffset) {
         this.endOffset = endOffset;
     }
-    
-    
 
     public float getScore() {
         return score;
@@ -141,6 +140,17 @@ public class SearchResult implements Comparable<SearchResult> {
     @Override
     public String toString() {
         return id + " - " + title + "-" + score + "\n[" + startOffset + " - " + endOffset + "] " + snip;
+    }
+
+    public JSONObject toJSON() {
+        JSONObject obj = new JSONObject();
+        obj.put("id", id);
+        obj.put("title", title);
+        obj.put("score", score);
+        obj.put("start", startOffset);
+        obj.put("end", endOffset);
+        obj.put("snip", snip);
+        return obj;
     }
 
     public String getTitle() {
