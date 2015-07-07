@@ -69,7 +69,6 @@ Usage
 
 * To index a Wikipedia dump, you must execute the script index.sh in the main directory.
 > usage: Index Wikipedia dump (multi threads) [-d <arg>] [-e <arg>] [-l
->
 >       <arg>] [-m <arg>] [-n <arg>] [-o <arg>]
 >
 > -d <arg>   wikiepdia dump file
