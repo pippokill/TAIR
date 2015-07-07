@@ -8,6 +8,6 @@ do
   THE_CLASSPATH=${THE_CLASSPATH}:${i}
 done
 
-echo Run...
+echo Run GUI...
 
-java -cp ".:${THE_CLASSPATH}" di.uniba.it.tee2.shell.TEEShell $1 $2 $3
+java -Xmx2G -cp ".:${THE_CLASSPATH}" di.uniba.it.tee2.gui.TEEgui $1 $2 $3 $4 $5 $6

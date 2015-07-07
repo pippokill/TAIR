@@ -216,7 +216,7 @@ public class TEEgui extends javax.swing.JFrame {
                 });
             } else {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Run searching GUI", options, true);
+                helpFormatter.printHelp("Run GUI", options, true);
             }
         } catch (ParseException ex) {
             Logger.getLogger(TEEgui.class.getName()).log(Level.SEVERE, null, ex);

@@ -126,7 +126,7 @@ public class TEEShell {
                 shell.promptLoop();
             } else {
                 HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("Run TEE2 console", options, true);
+                helpFormatter.printHelp("Run TEE2 shell", options, true);
             }
         } catch (ParseException | IOException ex) {
             Logger.getLogger(TEEShell.class.getName()).log(Level.SEVERE, "General error", ex);

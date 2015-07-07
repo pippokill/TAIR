@@ -51,8 +51,25 @@ Installation
 
 Usage
 -----
-* To run TAIR, you must execute the script run.sh in the main directory. 
-> The script requires the following parameters: *index_language* *index_dir* *shell_encoding (optional)*
+* To run TAIR shell, you must execute the script shell.sh in the main directory. 
+> usage: Run TEE2 shell [-d <arg>] [-e <arg>] [-l <arg>]
+> -d <arg>   the index directory
+> -e <arg>   charset encoding (optional)
+> -l <arg>   language (italian, english)
+
+* To run TAIR GUI, you must execute the script gui.sh in the main directory. 
+> usage: Run GUI [-d <arg>] [-l <arg>]
+> -d <arg>   the index directory
+> -l <arg>   language (italian, english)
 
 * To index a Wikipedia dump, you must execute the script index.sh in the main directory.
-> The script requires the following parameters: *language* *xml_dump_file* *output_dir* *n_thread* *dump_encoding (optional)*
+> usage: Index Wikipedia dump (multi threads) [-d <arg>] [-e <arg>] [-l
+>       <arg>] [-m <arg>] [-n <arg>] [-o <arg>]
+> -d <arg>   wikiepdia dump file
+> -e <arg>   charset encoding (optional, default UTF-8)
+> -l <arg>   language (italian, english)
+> -m <arg>   min text length (optional, default 4000 characters)
+> -n <arg>   number of threads (optional, default 2)
+> -o <arg>   output index directory
+
+
