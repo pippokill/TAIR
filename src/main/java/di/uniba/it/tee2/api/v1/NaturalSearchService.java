@@ -38,6 +38,7 @@ public class NaturalSearchService {
             for (SearchResult sr : search) {
                 results.add(sr.toJSON());
             }
+            json.put("results", results);
             return Response.ok(json.toString()).build();
         } catch (Exception ex) {
             Logger.getLogger(NaturalSearchService.class.getName()).log(Level.SEVERE, null, ex);

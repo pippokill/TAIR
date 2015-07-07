@@ -61,7 +61,7 @@ public class RestAPIServer extends Thread {
     public void run() {
         while (true) {
             try {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(15);
             } catch (InterruptedException ex) {
                 Logger.getLogger(RestAPIServer.class.getName()).log(Level.SEVERE, null, ex);
             }
